@@ -1,0 +1,23 @@
+name = "my-mathlib-project"
+version = "0.1.0"
+keywords = ["math"]
+defaultTargets = ["ProofBench"]
+
+[leanOptions]
+pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "Matroid"
+git = "https://github.com/utkuokur/Matroid.git"
+rev = "51192e30c48242904db4c4c48713f6a0ff8d8d17"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "9e47bf70e26518025a5db9598f5368c23360150e"
+
+[[lean_lib]]
+name = "ProofBench"
