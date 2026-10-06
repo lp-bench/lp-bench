@@ -185,9 +185,5 @@ def EmbeddabilityInTime (bound : ℕ → ℕ) : Prop :=
       ∃ C N : ℕ, 0 < C ∧
         ∀ n, N ≤ n → machine.time n ≤ C * bound n
 
-/-- Embeddability in three-space is decidable in deterministic polynomial
-time on finite two-complexes with trivial integral first homology. -/
-def PolynomialTimeEmbeddability : Prop :=
-  ∃ d : ℕ, EmbeddabilityInTime fun n ↦ n ^ d
 
 end FiniteTwoComplex
