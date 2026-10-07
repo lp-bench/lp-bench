@@ -11,13 +11,13 @@ maxSynthPendingDepth = 3
 
 [[require]]
 name = "Matroid"
-git = "https://github.com/utkuokur/Matroid.git"
-rev = "51192e30c48242904db4c4c48713f6a0ff8d8d17"
+git = "https://github.com/apnelson1/Matroid.git"
+rev = "fa6c155b76ffa93925d3a35188ae24f88f56d053"
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "9e47bf70e26518025a5db9598f5368c23360150e"
+rev = "v4.33.1"
 
 [[lean_lib]]
 name = "ProofBench"
