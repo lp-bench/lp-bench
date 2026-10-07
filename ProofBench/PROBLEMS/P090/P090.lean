@@ -1,10 +1,13 @@
-import Mathlib.Data.Fintype.Card
-import Mathlib.Data.Nat.Choose.Basic
-import Mathlib.Order.Antichain
+import Mathlib.Combinatorics.SimpleGraph.StronglyRegular
+import Mathlib.Data.Real.Basic
 
-/-- Sperner: an inclusion antichain has at most as many members as a middle
-layer of the Boolean lattice. -/
-theorem P090 {α : Type*} [Fintype α] (𝒜 : Finset (Finset α))
-    (h𝒜 : IsAntichain (· ⊆ ·) (𝒜 : Set (Finset α))) :
-    𝒜.card ≤ (Fintype.card α).choose (Fintype.card α / 2) := by
+open SimpleGraph Matrix
+
+/-- Restricted eigenvalues of a strongly regular graph: an eigenvalue `x` of the
+adjacency matrix of an `srg(n, k, ℓ, μ)` with an eigenvector orthogonal to the
+all-ones vector is a root of `x² + (μ - ℓ) x + (μ - k)`. -/
+theorem P090 {V : Type*} [Fintype V] (G : SimpleGraph V) [DecidableRel G.Adj]
+    {n k ℓ μ : ℕ} (hG : G.IsSRGWith n k ℓ μ) (x : ℝ) (v : V → ℝ) (hv : v ≠ 0)
+    (hsum : ∑ i, v i = 0) (hx : G.adjMatrix ℝ *ᵥ v = x • v) :
+    x ^ 2 + ((μ : ℝ) - ℓ) * x + ((μ : ℝ) - k) = 0 := by
   sorry
