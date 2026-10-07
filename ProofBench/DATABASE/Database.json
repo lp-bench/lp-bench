@@ -1308,5 +1308,44 @@
   "formal_statement": [
    "theorem P108 : roundConstant hamiltonianProperty ≤ 1.81701"
   ]
+ },
+ {
+  "id": "109",
+  "name": "Two Vertices of Equal Degree",
+  "difficulty": "Calibration (elementary; full Lean reference proof)",
+  "msc": "05C07 Vertex degrees",
+  "informal_statement": [
+   "\\section*{Problem 109: Two vertices of equal degree}\n\\refstepcounter{section}\nLet $G$ be a finite simple graph on $n \\ge 2$ vertices; the \\emph{degree} of a vertex is the number of its neighbours.\n\\begin{theorem}\nSome two distinct vertices of $G$ have the same degree.\n\\end{theorem}\nA standard exercise \\cite{Bollobas1998MGT, Lovasz1993CPE}: degrees lie in $\\{0,\\dots,n-1\\}$, but $0$ and $n-1$ cannot both occur, so $n$ vertices take at most $n-1$ values.\n\nThe formal statement uses Mathlib's \\texttt{SimpleGraph} with a finite vertex type and \\texttt{degree}.\n"
+  ],
+  "informal_statement_summary": "In any finite simple graph with at least two vertices, two distinct vertices have the same degree. Degrees lie between 0 and n-1, and a vertex of degree n-1 rules out a vertex of degree 0, so the n degrees take at most n-1 values and two coincide by the pigeonhole principle. A standard textbook exercise; the formal statement uses Mathlib's SimpleGraph and degree on a finite vertex type.",
+  "formal_statement": [
+   "theorem P109 {V : Type*} [Fintype V] (G : SimpleGraph V) [DecidableRel G.Adj] (h : 2 ≤ Fintype.card V) : ∃ u v, u ≠ v ∧ G.degree u = G.degree v"
+  ]
+ },
+ {
+  "id": "110",
+  "name": "A Zero-Sum Block of Consecutive Integers",
+  "difficulty": "Calibration (elementary; full Lean reference proof)",
+  "msc": "11B75 Other combinatorial number theory; 05D10 Ramsey theory",
+  "informal_statement": [
+   "\\section*{Problem 110: A zero-sum block of consecutive integers}\n\\refstepcounter{section}\n\\begin{theorem}\nFor every $n \\ge 1$ and every sequence $a_0, \\dots, a_{n-1}$ of integers there are indices $0 \\le i < j \\le n$ with $n \\mid a_i + a_{i+1} + \\dots + a_{j-1}$.\n\\end{theorem}\nA classical pigeonhole argument \\cite{Lovasz1993CPE}: the $n+1$ prefix sums $S_0 = 0, S_1, \\dots, S_n$ take at most $n$ values modulo $n$, and the difference of two equal ones is a block sum.  It is a much weaker relative of the Erd\\H{o}s--Ginzburg--Ziv theorem \\cite{ErdosGinzburgZiv1961}, which is in Mathlib.\n\nThe formal statement takes the sequence as a function $\\mathbb N \\to \\mathbb Z$ and sums over the half-open interval $[i, j)$.\n"
+  ],
+  "informal_statement_summary": "Among any n ≥ 1 integers a_0, …, a_{n-1} some block of consecutive terms a_i + … + a_{j-1} (0 ≤ i < j ≤ n) is divisible by n. The n+1 prefix sums take at most n residues modulo n, so two agree and their difference is such a block. A classical exercise and a weak relative of the Erdős–Ginzburg–Ziv theorem (which Mathlib has in a different form). The formal statement uses a function ℕ → ℤ and a sum over Finset.Ico i j.",
+  "formal_statement": [
+   "theorem P110 (n : ℕ) (hn : 0 < n) (a : ℕ → ℤ) : ∃ i j, i < j ∧ j ≤ n ∧ (n : ℤ) ∣ ∑ k ∈ Finset.Ico i j, a k"
+  ]
+ },
+ {
+  "id": "111",
+  "name": "A Consecutive Pair Among n + 1 Numbers from [2n]",
+  "difficulty": "Calibration (elementary; full Lean reference proof)",
+  "msc": "11B75 Other combinatorial number theory; 05D05 Extremal set theory",
+  "informal_statement": [
+   "\\section*{Problem 111: A consecutive pair among $n+1$ numbers from $\\{1,\\dots,2n\\}$}\n\\refstepcounter{section}\n\\begin{theorem}\nEvery set of $n + 1$ integers from $\\{1, 2, \\dots, 2n\\}$ contains two consecutive integers (which are therefore coprime).\n\\end{theorem}\nA classical pigeonhole exercise, often attributed to Erd\\H{o}s \\cite{Lovasz1993CPE, AignerZiegler2018Book}: the $n$ pairs $\\{2k-1, 2k\\}$ partition $\\{1,\\dots,2n\\}$, so two of the $n+1$ numbers lie in the same pair.  The companion statement that two of the numbers divide one another is a separate problem.\n\nThe formal statement takes a \\texttt{Finset} $S \\subseteq [1, 2n]$ with $|S| \\ge n+1$ and asserts $a, a+1 \\in S$ for some $a$.\n"
+  ],
+  "informal_statement_summary": "Any n+1 integers chosen from {1, …, 2n} include two consecutive integers, hence two coprime ones. The n pairs {2k-1, 2k} cover {1, …, 2n}, so by the pigeonhole principle two of the n+1 numbers fall in the same pair. A classical exercise often attributed to Erdős. The formal statement takes a Finset S ⊆ Icc 1 (2n) with at least n+1 elements and asserts that a and a+1 both lie in S for some a.",
+  "formal_statement": [
+   "theorem P111 (n : ℕ) (S : Finset ℕ) (hS : S ⊆ Icc 1 (2 * n)) (hcard : n + 1 ≤ S.card) : ∃ a ∈ S, a + 1 ∈ S"
+  ]
  }
 ]
