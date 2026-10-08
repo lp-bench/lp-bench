@@ -9,7 +9,7 @@
   ],
   "informal_statement_summary": "For a finite simple graph G, a minor of G is any graph obtainable by deleting vertices and edges and contracting edges; the Hadwiger number h(G) is the largest t for which the complete graph K_t is a minor of G. A proper colouring assigns colours to vertices so that adjacent vertices differ, and the chromatic number χ(G) is the least number of colours in a proper colouring. Hadwiger's conjecture asserts that for every r ∈ ℕ and every finite simple graph G, r ≤ χ(G) implies r ≤ h(G): a graph that needs at least r colours must contain K_r as a minor. Equivalently — the form stated here — every graph with no K_(r+1) minor (i.e. h(G) ≤ r) is (r+1)-colourable. The case r = 4 is equivalent to the Four-Colour Theorem, and Robertson, Seymour and Thomas settled r = 5; the conjecture is open for all r ≥ 6.",
   "formal_statement": [
-   "theorem P001 (G : SimpleGraph V) : HadwigerConj G"
+   "theorem P001 : ¬ ∀ (V : Type u) [Fintype V] (G : SimpleGraph V), HadwigerConj G"
   ]
  },
  {
@@ -48,7 +48,7 @@
   ],
   "informal_statement_summary": "For simple graphs H and G, a graph homomorphism H → G is a vertex map sending every edge of H to an edge of G; writing hom(H, G) for the number of such maps, the homomorphism density of H in G is t_H(G) = hom(H, G) / |V(G)|^|V(H)|. Sidorenko's conjecture states that for every bipartite graph H and every graph G, t_H(G) ≥ t_{K₂}(G)^|E(H)| — the edge density of G raised to the number of edges of H. Since the conjecture is open in general, this challenge poses a scalable weakening that bounds the two sides of the bipartition: for a parameter r, restrict to bipartite graphs H admitting a bipartition V(H) = X ∪ Y with |X| ≤ r and |Y| ≤ r. As r → ∞ this class exhausts all bipartite graphs, so the family interpolates between small, tractable cases and the full conjecture; the universal version asks for a proof or disproof for every r. (The specific instance of the half-graph H_r is split off as a separate problem.)",
   "formal_statement": [
-   "theorem P004 [Nonempty V] : SidorenkoConj H G"
+   "theorem P004 : ¬ ∀ (W V : Type) [Fintype W] [Fintype V] [Nonempty V] (H : SimpleGraph W) (G : SimpleGraph V), SidorenkoConj H G"
   ]
  },
  {
@@ -100,7 +100,7 @@
   ],
   "informal_statement_summary": "A hypergraph is r-uniform if every edge has exactly r vertices, and r-partite if its vertex set can be partitioned into r classes P₁,…,P_r meeting each edge in exactly one vertex of each class. A vertex cover is a set of vertices meeting every edge, and the cover number τ(H) is the least size of a vertex cover; the matching number ν(H) is the greatest number of pairwise-disjoint edges. Ryser's conjecture states that every r-partite r-uniform hypergraph H satisfies τ(H) ≤ (r − 1)·ν(H). For r = 2 this is König's theorem; r = 3 was proved by Aharoni via a topological method; it is open for all r ≥ 4.",
   "formal_statement": [
-   "theorem P008 : RyserConjecture"
+   "theorem P008 : ¬ RyserConjecture.{u}"
   ]
  },
  {

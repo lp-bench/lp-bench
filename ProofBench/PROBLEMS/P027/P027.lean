@@ -10,11 +10,11 @@ orientation of a simple graph.  For a vertex `v`, its *first out-neighbourhood*
 
 The conjecture asserts that every finite oriented graph has a vertex `v` with
 `|N⁺(v)| ≤ |N⁺⁺(v)|` — a vertex whose second neighbourhood is at least as large
-as its first.  It is OPEN in general; the tournament case is Dean's conjecture,
-proved by Fisher (1996).
+as its first.  The tournament case is Dean's conjecture, proved by Fisher
+(1996); the general case was open until October 2026, when a proof appeared in
+OpenAI's math release (Lean-checked).
 
-This file challenges you to prove the conjecture (its negation is the companion
-`P027_DISPROVE`).
+This file challenges you to prove the conjecture.
 -/
 
 import Mathlib.Data.Set.Card

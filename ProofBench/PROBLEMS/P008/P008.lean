@@ -18,4 +18,9 @@ def RyserConjecture : Prop :=
   H.IsUniform r → H.IsPartite r →
     H.coverNumber ≤ (r - 1) * H.matchingNumber
 
-theorem P008 : RyserConjecture := sorry
+/-- **Refuting Ryser's hypergraph conjecture.**  The conjecture is a theorem
+for `r = 2` (König) and `r = 3` (Aharoni) and was disproved for large `r` in
+October 2026 (OpenAI math release, Lean-checked).  Show that `RyserConjecture`
+fails: some `r ≥ 2` and some `r`-partite `r`-uniform hypergraph have cover
+number exceeding `(r - 1)` times the matching number. -/
+theorem P008 : ¬ RyserConjecture.{u} := sorry
