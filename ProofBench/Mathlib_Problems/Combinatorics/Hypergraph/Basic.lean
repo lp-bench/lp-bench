@@ -11,14 +11,14 @@ variable {V : Type*}
 
 /- A **finite hypergraph** `H = (V, E)` on a vertex type `α`: a finite vertex
 set `vertices` together with a set `edges` of hyperedges, each a subset of `V`. -/
-structure Hypergraph (α : Type*) where
+structure FinHypergraph (α : Type*) where
   vertices : Finset α
   edges : Set (Finset α)
   edges_subset_vertices : ∀ e ∈ edges, e ⊆ vertices
 
-variable (H : Hypergraph V)
+variable (H : FinHypergraph V)
 
-namespace Hypergraph
+namespace FinHypergraph
 
 /- C is a vertex cover if every edge contains a vertex in C. -/
 def IsVertexCover (C : Finset V) : Prop :=
@@ -61,12 +61,12 @@ def IsPartite (r : ℕ) : Prop :=
 
 /- The **canonical simple graph** of a hypergraph: `u ~ v` iff `{u, v}` is a
 hyperedge.  For a 2-uniform hypergraph this is a faithful encoding. -/
-def toSimpleGraph (H : Hypergraph V) : SimpleGraph V where
+def toSimpleGraph (H : FinHypergraph V) : SimpleGraph V where
   Adj u v := u ≠ v ∧ ({u, v} : Finset V) ∈ H.edges
   symm := ⟨fun {u v} h => ⟨h.1.symm, by rw [Finset.pair_comm]; exact h.2⟩⟩
   loopless := ⟨fun v h => h.1 rfl⟩
 
-end Hypergraph
+end FinHypergraph
 
 def SimpleGraph.matchingNumber (G : SimpleGraph V) : ℕ∞ :=
   ⨆ (M : G.Subgraph) (_ : M.IsMatching), M.edgeSet.encard
@@ -74,7 +74,7 @@ def SimpleGraph.matchingNumber (G : SimpleGraph V) : ℕ∞ :=
 variable [DecidableEq V]
 
 /-- **Graph → hypergraph.** -/
-def SimpleGraph.toHypergraph (G : SimpleGraph V) [Fintype V] : Hypergraph V where
+def SimpleGraph.toHypergraph (G : SimpleGraph V) [Fintype V] : FinHypergraph V where
   vertices := Finset.univ
   edges := {e : Finset V | ∃ u v, G.Adj u v ∧ e = {u, v}}
   edges_subset_vertices := fun e _ => Finset.subset_univ e

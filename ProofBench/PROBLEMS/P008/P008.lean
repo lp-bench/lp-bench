@@ -14,7 +14,7 @@ with `r ≥ 2`, the cover number is at most `(r - 1)` times the matching
 number. -/
 def RyserConjecture : Prop :=
   ∀ r : ℕ, 2 ≤ r →
-  ∀ {V : Type u} [DecidableEq V] (H : Hypergraph V),
+  ∀ {V : Type u} [DecidableEq V] (H : FinHypergraph V),
   H.IsUniform r → H.IsPartite r →
     H.coverNumber ≤ (r - 1) * H.matchingNumber
 

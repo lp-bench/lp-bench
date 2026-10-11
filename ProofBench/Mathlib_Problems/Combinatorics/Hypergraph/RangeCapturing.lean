@@ -7,7 +7,7 @@ namespace RangeCapturing
 
 /- =====================================================================
 The geometry: `ℝ^d`, range families, and the range capturing hypergraph
-`H(V, R, m)` as an honest `Hypergraph` object.
+`H(V, R, m)` as an honest `FinHypergraph` object.
 ===================================================================== -/
 
 /- Euclidean `d`-space `ℝ^d` (`EuclideanSpace ℝ (Fin d)`, definitionally
@@ -22,19 +22,19 @@ variable {d : ℕ}
 
 /- The **`m`-uniform range capturing hypergraph** `H(V, R, m)` (paper, §1 and
 Definition 1): vertex set `V`, its hyperedges the `m`-element subsets of `V`
-captured by some range of the family `R` (`Hypergraph.CapturedBy`, i.e.
+captured by some range of the family `R` (`FinHypergraph.CapturedBy`, i.e.
 `edge = V ∩ range`).  Capture is phrased directly via `CapturedBy`, against the
-carrier `onV : Hypergraph` whose vertex set is `V` — `CapturedBy` only ever reads
+carrier `onV : FinHypergraph` whose vertex set is `V` — `CapturedBy` only ever reads
 `.vertices`, so its (empty) edge set is immaterial, and `onV.vertices` is
 definitionally the resulting `H.vertices`. -/
 def rangeCapturingHypergraph (vertices : Finset (Space d)) (ranges : RangeFamily d)
-    (m : ℕ) : Hypergraph (Space d) :=
-  let onV : Hypergraph (Space d) := ⟨vertices, ∅, by simp⟩
+    (m : ℕ) : FinHypergraph (Space d) :=
+  let onV : FinHypergraph (Space d) := ⟨vertices, ∅, by simp⟩
   { vertices := vertices
     edges := { e | e.card = m ∧ ∃ range ∈ ranges, onV.CapturedBy e range }
     edges_subset_vertices := by
       rintro e ⟨-, range, -, hcap⟩
-      exact Hypergraph.capturedBy_subset hcap }
+      exact FinHypergraph.capturedBy_subset hcap }
 
 theorem mem_rangeCapturingHypergraph_edges {vertices edge : Finset (Space d)}
     {ranges : RangeFamily d} {m : ℕ} :

@@ -24,38 +24,38 @@ imports this file.
 
 open Finset
 
-namespace Hypergraph
+namespace FinHypergraph
 
 variable {α : Type*}
 
 /- A `k`-coloring `color : α → Fin k` of the vertices is **polychromatic** for
 `H` when every hyperedge contains a vertex of each color. -/
-def Polychromatic (H : Hypergraph α) (k : ℕ) (color : α → Fin k) : Prop :=
+def Polychromatic (H : FinHypergraph α) (k : ℕ) (color : α → Fin k) : Prop :=
   ∀ e ∈ H.edges, ∀ i : Fin k, ∃ v ∈ e, color v = i
 
 /- `H` **admits a polychromatic `k`-coloring**. -/
-def IsPolychromaticColorable (H : Hypergraph α) (k : ℕ) : Prop :=
+def IsPolychromaticColorable (H : FinHypergraph α) (k : ℕ) : Prop :=
   ∃ color : α → Fin k, H.Polychromatic k color
 
 /- `X` is a **`t`-shallow hitting set** of `H` (paper, §1.2): it meets every
 hyperedge at least once and at most `t` times, `1 ≤ |e ∩ X| ≤ t`. -/
-def ShallowHittingSet [DecidableEq α] (H : Hypergraph α) (X : Finset α) (t : ℕ) : Prop :=
+def ShallowHittingSet [DecidableEq α] (H : FinHypergraph α) (X : Finset α) (t : ℕ) : Prop :=
   ∀ e ∈ H.edges, 1 ≤ (e ∩ X).card ∧ (e ∩ X).card ≤ t
 
 /- A finite point set `edge` is **captured by** a range `range` in the hypergraph
 `H` when it is exactly the set of vertices of `H` lying in `range`, i.e.
 `edge = V(H) ∩ range` (paper, §1: `e = V ∩ R`).  Capture is a notion *about the
 hypergraph*: it is phrased against the vertex set `H.vertices = V(H)`. -/
-def CapturedBy (H : Hypergraph α) (e : Finset α) (range : Set α) : Prop :=
+def CapturedBy (H : FinHypergraph α) (e : Finset α) (range : Set α) : Prop :=
   (↑e : Set α) = ↑H.vertices ∩ range
 
 /- The pointwise view of capture (`p ∈ e ↔ p ∈ V(H) ∧ p ∈ range`), recovered from
 the set equation `e = V ∩ range` when destructuring is more convenient. -/
-theorem capturedBy_iff {H : Hypergraph α} {e : Finset α} {range : Set α} :
+theorem capturedBy_iff {H : FinHypergraph α} {e : Finset α} {range : Set α} :
     H.CapturedBy e range ↔ ∀ p, p ∈ e ↔ p ∈ H.vertices ∧ p ∈ range := by
   simp [CapturedBy, Set.ext_iff]
 
-theorem capturedBy_subset {H : Hypergraph α} {edge : Finset α} {range : Set α}
+theorem capturedBy_subset {H : FinHypergraph α} {edge : Finset α} {range : Set α}
     (h : H.CapturedBy edge range) : edge ⊆ H.vertices := by
   intro p hp
   exact (((capturedBy_iff.mp h) p).mp hp).1
@@ -80,20 +80,20 @@ def Monochromatic {k : ℕ} (c : α → Fin k) (e : Finset α) : Prop :=
 /-- A **weak (proper) `k`-coloring**: no hyperedge of size `≥ 2` is monochromatic.
 The `2 ≤ e.card` guard is the usual convention — a single-vertex edge is always
 monochromatic, so only edges that *can* be non-monochromatic are constrained. -/
-def WeakColoring (H : Hypergraph α) (k : ℕ) (c : α → Fin k) : Prop :=
+def WeakColoring (H : FinHypergraph α) (k : ℕ) (c : α → Fin k) : Prop :=
   ∀ e ∈ H.edges, 2 ≤ e.card → ¬ Monochromatic c e
 
 /-- A **strong `k`-coloring**: distinct vertices of a common hyperedge get distinct
 colors, i.e. `c` is injective on every hyperedge. -/
-def StrongColoring (H : Hypergraph α) (k : ℕ) (c : α → Fin k) : Prop :=
+def StrongColoring (H : FinHypergraph α) (k : ℕ) (c : α → Fin k) : Prop :=
   ∀ e ∈ H.edges, ∀ u ∈ e, ∀ v ∈ e, u ≠ v → c u ≠ c v
 
 /-- `H` admits a proper (weak) `k`-coloring. -/
-def IsProperlyColorable (H : Hypergraph α) (k : ℕ) : Prop :=
+def IsProperlyColorable (H : FinHypergraph α) (k : ℕ) : Prop :=
   ∃ c : α → Fin k, H.WeakColoring k c
 
 /-- `H` admits a strong `k`-coloring. -/
-def IsStronglyColorable (H : Hypergraph α) (k : ℕ) : Prop :=
+def IsStronglyColorable (H : FinHypergraph α) (k : ℕ) : Prop :=
   ∃ c : α → Fin k, H.StrongColoring k c
 
 /-! ### How the three notions relate -/
@@ -103,4 +103,4 @@ def IsStronglyColorable (H : Hypergraph α) (k : ℕ) : Prop :=
 A graph is a `2`-uniform hypergraph: every edge `{u, v}` has exactly two vertices.
 -/
 
-end Hypergraph
+end FinHypergraph
