@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Regenerate this repository from a commit of the private ProofBench repository.
+"""Regenerate this repository from a commit of the private development repository (proofbench-hidden).
 
-usage: scripts/sync_from_proofbench.py /path/to/ProofBench [--rev HEAD] [--build]
+usage: scripts/sync_from_proofbench.py /path/to/proofbench-hidden [--rev HEAD] [--build]
 
 Only test-taker material is copied: the Lean project files, the statement-layer
 library `ProofBench/Mathlib_Problems`, and per problem `Pxxx.lean` and (for open

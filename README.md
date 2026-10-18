@@ -56,8 +56,8 @@ answer we expect.
 You need Lean 4 through [elan](https://lean-lang.org/install/). Then:
 
 ```bash
-git clone https://github.com/proof-bench/proofbench-statements
-cd proofbench-statements
+git clone https://github.com/proof-bench/proofbench
+cd proofbench
 lake exe cache get                          # download compiled Mathlib (a few minutes)
 lake build ProofBench.PROBLEMS.P112.P112    # check that a problem file builds
 ```
@@ -136,7 +136,7 @@ automatically.
 ## Reporting a problem
 
 If a statement does not say what it should, or a definition looks wrong,
-please [open an issue](https://github.com/proof-bench/proofbench-statements/issues).
+please [open an issue](https://github.com/proof-bench/proofbench/issues).
 
 ## For maintainers
 
@@ -144,7 +144,7 @@ This repository is exported from the ProofBench development repository, which
 also holds the theorem sandwiches and reference proofs; edit problems there,
 not here. To regenerate:
 
-    scripts/sync_from_proofbench.py ../proofbench --build   # path to the development repository
+    scripts/sync_from_proofbench.py ../proofbench-hidden --build   # path to the development repository
     git add -A && git commit -m "Sync ProofBench $(cut -c1-10 SOURCE_COMMIT)"
 
 The script exports the last commit of ProofBench, not uncommitted changes. It
