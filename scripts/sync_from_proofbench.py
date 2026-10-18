@@ -109,6 +109,7 @@ def main() -> None:
         print("uncommitted ProofBench changes NOT exported (commit them first):\n  " + "\n  ".join(dirty))
     if a.build:
         mods = sorted(module(p) for p in statements | (library - skipped.keys()))
+        subprocess.run(["lake", "exe", "cache", "get"], cwd=HERE, check=True)
         subprocess.run(["lake", "build", *mods], cwd=HERE, check=True)
 
 
