@@ -64,7 +64,9 @@ lake build ProofBench.PROBLEMS.P112.P112    # check that a problem file builds
 
 The first build also compiles Peter Nelson's
 [Matroid](https://github.com/apnelson1/Matroid) library, which some statements
-use. Versions: Lean 4.33.1, Mathlib v4.33.1, Matroid at `fa6c155`.
+use. Versions: Lean 4.34.1, Mathlib v4.34.1, and Matroid from the branch
+[`proofbench-v4.34.1`](https://github.com/utkuokur/Matroid/tree/proofbench-v4.34.1)
+of a fork, which adapts the library to that Mathlib release.
 
 To attempt a problem, open its file, replace the `sorry` and build it again. A
 few files contain more than one `sorry` (P015, P017, P070); every one of them
