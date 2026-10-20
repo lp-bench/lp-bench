@@ -105,7 +105,7 @@ therefore check each problem with a **theorem sandwich**: a stronger statement,
 or a set of key lemmas, that implies the problem, and easy corollaries that
 follow from it, each with a Lean proof of the implication. A statement that is
 accidentally too strong makes the upper bound unprovable; one that is too weak
-fails to give the corollaries. 87 of the 115 problems currently have both
+fails to give the corollaries. 88 of the 115 problems currently have both
 bounds. The sandwiches and our reference proofs are kept private, so that they
 do not give away solutions.
 
