@@ -1386,5 +1386,18 @@
   "formal_statement": [
    "theorem P114 {α : Type*} (M N : Matroid α) [M.Finitary] [N.Finitary] (hE : M.E = N.E) : M.SatisfiesIntersection N"
   ]
+ },
+ {
+  "id": "115",
+  "name": "Concavity of van der Waerden Numbers",
+  "difficulty": "Open",
+  "msc": "05D10 Ramsey theory",
+  "informal_statement": [
+   "\\section*{Problem 115: Concavity of van der Waerden numbers}\n\\refstepcounter{section}\nAn \\emph{$m$-term arithmetic progression} is a set $\\{a, a+d, \\ldots, a+(m-1)d\\}$ of integers with common difference $d > 0$, and $[n] := \\{1, \\ldots, n\\}$.\n\n\\begin{definition}[Two-colour van der Waerden numbers]\nFor positive integers $k$ and $\\ell$, the \\emph{van der Waerden number} $w(k,\\ell)$ is the least positive integer $n$ such that every colouring of $[n]$ in red and blue contains a red $k$-term arithmetic progression or a blue $\\ell$-term arithmetic progression.\n\\end{definition}\n\nBy van der Waerden's theorem these numbers exist, and swapping the two colours shows $w(k,\\ell) = w(\\ell,k)$.\n\n\\begin{conjecture}[Concavity of van der Waerden numbers]\nFor all integers $k \\geq \\ell \\geq 2$,\n$$\nw(k,\\ell) \\geq w(k+1,\\ell-1) .\n$$\n\\end{conjecture}\n\nAlong each antidiagonal $k + \\ell = s$ the conjecture says that $w$ does not increase as the pair $(k,\\ell)$ becomes less balanced; with the symmetry, the numbers $w(s-\\ell,\\ell)$ are then largest at the middle of the antidiagonal. For example, $w(4,4) = 35$, $w(5,3) = 22$, $w(6,2) = 11$ and $w(7,1) = 7$. The conjecture was stated in 2000 and published in \\cite{LandmanRobertson2003Ramsey} and \\cite{KhodkarLandman2007Recent}; it is listed in the Open Problem Garden \\cite{Landman2007OPGConcavity}. A direct computation confirms it for all pairs with $k + \\ell \\leq 9$.\n\nThe formal statement colours $\\{0, \\ldots, n-1\\}$ instead of $[n]$, which gives the same numbers, and requires $\\ell \\geq 2$, so that both numbers in the inequality have positive arguments. The numbers $w(k,\\ell)$ are defined in the ProofBench statement library as \\texttt{VanDerWaerden.mixedVdW}.\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\\begin{thebibliography}{3}\n\\bibitem{LandmanRobertson2003Ramsey} Bruce M. Landman and Aaron Robertson. \\emph{Ramsey Theory on the Integers}. Student Mathematical Library \\textbf{24}, American Mathematical Society, Providence, RI. (2003).\n\\bibitem{KhodkarLandman2007Recent} Abdollah Khodkar and Bruce M. Landman. \\emph{Recent progress in Ramsey theory on the integers}. In: \\emph{Combinatorial Number Theory}, de Gruyter, Berlin, 305--313. (2007).\n\\bibitem{Landman2007OPGConcavity} Bruce M. Landman. \\emph{Concavity of van der Waerden numbers}. Open Problem Garden, \\texttt{openproblemgarden.org/op/concavity\\_of\\_van\\_der\\_waerden\\_numbers}. (2007).\n\\end{thebibliography}"
+  ],
+  "informal_statement_summary": "For positive integers k and l, the two-colour van der Waerden number w(k,l) is the least n such that every red-blue colouring of {1,...,n} contains a red k-term or a blue l-term arithmetic progression; it exists by van der Waerden's theorem, and w(k,l) = w(l,k). The conjecture of Landman and Robertson states that w(k,l) >= w(k+1,l-1) for all k >= l >= 2: along each antidiagonal k + l = s, the numbers do not increase as the pair becomes less balanced. The formal statement colours {0,...,n-1}, which gives the same numbers.",
+  "formal_statement": [
+   "theorem P115 {k ℓ : ℕ} (hℓ : 2 ≤ ℓ) (hk : ℓ ≤ k) : VdWConcavity k ℓ"
+  ]
  }
 ]

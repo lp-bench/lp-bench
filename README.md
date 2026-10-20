@@ -5,7 +5,7 @@
 [Evaluation harness](https://github.com/proof-bench/proofbench-eval-apptainer) ·
 [Apptainer sandbox](https://github.com/proof-bench/inspect-apptainer)
 
-ProofBench is a benchmark of **114 research-level problems**, most of them in
+ProofBench is a benchmark of **115 research-level problems**, most of them in
 combinatorics and graph theory, stated in Lean 4 with Mathlib. Each problem is a
 single theorem whose proof is `sorry`; a solution replaces it with a proof that
 Lean accepts. The problems are taken from the research literature and from open
@@ -14,12 +14,12 @@ and Universität Hamburg.
 
 | Category    | Problems | What it means                                          |
 |-------------|---------:|--------------------------------------------------------|
-| Open        | 32       | open conjectures: prove the statement or its negation  |
+| Open        | 33       | open conjectures: prove the statement or its negation  |
 | Research    | 68       | results proved in the research literature              |
 | Calibration | 14       | elementary or textbook results, to check an evaluation |
 
 By Mathematics Subject Classification, 82 problems are in graph theory (05C), 8
-in designs, configurations and matroids (05B) and 5 in extremal set theory
+in designs, configurations and matroids (05B) and 6 in extremal combinatorics
 (05D); the other 19 range over number theory, discrete and convex geometry,
 group theory, probability, order theory, set theory and theoretical computer
 science. Browse them on the [website](https://proof-bench.github.io/problems.html)
@@ -93,7 +93,7 @@ checked by hand.
 ProofBench/PROBLEMS/Pxxx/Pxxx.lean            the problem: one theorem, proof replaced by sorry
 ProofBench/PROBLEMS/Pxxx/Pxxx_DISPROVE.lean   its negation (open problems only)
 ProofBench/Mathlib_Problems/                  definitions needed to state the problems
-                                              but missing from Mathlib (47 modules)
+                                              but missing from Mathlib (48 modules)
 ProofBench/DATABASE/Database.json             per problem: id, name, category, MSC class,
                                               informal statement (LaTeX), summary, Lean statement
 ```
@@ -105,7 +105,7 @@ therefore check each problem with a **theorem sandwich**: a stronger statement,
 or a set of key lemmas, that implies the problem, and easy corollaries that
 follow from it, each with a Lean proof of the implication. A statement that is
 accidentally too strong makes the upper bound unprovable; one that is too weak
-fails to give the corollaries. 87 of the 114 problems currently have both
+fails to give the corollaries. 87 of the 115 problems currently have both
 bounds. The sandwiches and our reference proofs are kept private, so that they
 do not give away solutions.
 
