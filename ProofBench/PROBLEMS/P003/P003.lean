@@ -1,8 +1,10 @@
-import ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.RamseyNumber
+import ProofBench.Mathlib_Problems.Combinatorics.Digraph.CaccettaHaggkvist
 
-def RamseyBracket : Prop :=
-  ∀ (r : ℕ), ∃ d₁ d₂ : ℝ,
-  0 ≤ d₁ ∧ 0 ≤ d₂ ∧ |d₁ - d₂| ≤ (4 - √2) * (0.96 : ℝ)^r ∧
-    ∃ T, ∀ t ≥ T, d₁ ^ t ≤ ramseyNumber t ∧ ramseyNumber t ≤ d₂ ^ t
+/-- The Caccetta–Häggkvist conjecture for every minimum out-degree `r ≥ 1`. -/
+def CaccettaHaggkvistConj : Prop := ∀ r, 0 < r → CaccettaHaggkvistFor r
 
-theorem P003 : RamseyBracket := sorry
+/-- **The Caccetta–Häggkvist conjecture** (1978).  Every finite digraph on `n`
+vertices in which every vertex has out-degree at least `r ≥ 1` contains a directed
+cycle of length at most `⌈n / r⌉`.  Known for `r ≤ 5` (Caccetta–Häggkvist for
+`r = 2`, Hamidoune for `r = 3`, Hoàng–Reed for `r = 4, 5`); open from `r = 6` on. -/
+theorem P003 : CaccettaHaggkvistConj := sorry

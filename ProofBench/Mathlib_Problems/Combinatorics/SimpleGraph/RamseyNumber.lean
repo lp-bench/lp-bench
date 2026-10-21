@@ -27,7 +27,7 @@ noncomputable def ramseyRoot (t : ℕ) : ℝ := (ramseyNumber t : ℝ) ^ ((t : �
 
 /-- **The Erdős limit conjecture**, in root-convergence form:
 some `c ∈ [√2, 4]` is the limit of `R(t)^{1/t}`.  Shared conjecture used by the
-P003 upper bound; equivalent to the ε-bracket form via
+P116 upper bound; equivalent to the ε-bracket form via
 `ramsey_rootBracket_iff_tendsto`.  Existence of the limit is the open Erdős
 problem (and any such `c` is known to be `< 4`). -/
 def RamseyLimitConjecture : Prop :=
