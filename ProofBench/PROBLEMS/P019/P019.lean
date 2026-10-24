@@ -1,12 +1,3 @@
-/-
-## Introduction
-This file challenges you to prove the **Graham–Pollak theorem** (1971):
-
-If the edge set of the complete graph `Kₙ` is partitioned into `m` complete
-bipartite subgraphs ("bicliques"), then `m ≥ n − 1`, i.e. `n ≤ m + 1`.
-
--/
-
 import Mathlib.Combinatorics.SimpleGraph.Basic
 
 open Finset
@@ -37,8 +28,8 @@ def GrahamPollakBound {n m : ℕ} (_B : Fin m → Biclique (Fin n)) : Prop :=
 
 /- Do not modify above this line. -/
 
-/-- **Graham–Pollak.** Any biclique partition of `Kₙ` uses at least `n − 1`
-bicliques. -/
+/-- Graham–Pollak theorem (Graham–Pollak 1971, Bell System Tech. J.): any biclique partition of
+`Kₙ` uses at least `n − 1` bicliques. -/
 theorem P019 {n m : ℕ} (B : Fin m → Biclique (Fin n))
     (h : IsBicliquePartition B) : GrahamPollakBound B := by
   sorry

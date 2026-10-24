@@ -6,20 +6,20 @@ noncomputable section
 
 namespace Hypermatrix
 
-/-
-A: tensor
-n: dimension of A
-m: rank of A
--/
+/-- An order-`m` tensor of dimension `n` over `𝔽`: an entry in `𝔽` for each length-`m` vector
+of indices in `Fin n`. -/
 def Tensor (m : ℕ) := Vector (Fin n) m → 𝔽
 
-/-- Helper: Extract sub-vector -/
+/-- The sub-vector of `v` of length `len` starting at position `start`. -/
 def subVector {α : Type} {n : ℕ} (v : Vector α n)
   (start len : ℕ) (h : start + len ≤ n) : Vector α len :=
   ⟨ v.toList.drop start |>.take len |>.toArray, by
     simp [List.length_take, List.length_drop]
     omega⟩
 
+/-- The Shao product `A ⊡ B` of tensors of orders `m` and `k`, of order `(m - 1)(k - 1) + 1`:
+its entry at `(i, α₁, …, α_{m-1})` is `∑ⱼ A(i, j₁, …, j_{m-1}) ∏ᵣ B(jᵣ, αᵣ)`, where the
+`αᵣ` are the consecutive blocks of length `k - 1` of the index tail. -/
 def shaoProduct {𝔽 : Type} [Field 𝔽]
     {m k : ℕ} (hm : m ≥ 1) (hk : k ≥ 1)
     (A : Tensor 𝔽 n m) (B : Tensor 𝔽 n k) :
@@ -49,6 +49,8 @@ def shaoProduct {𝔽 : Type} [Field 𝔽]
 
 scoped infixl:70 " ⊡ " => shaoProduct _ (by omega) (by omega)
 
+/-- Associativity of the Shao product (Shao 2013, Linear Algebra Appl.); both sides have
+order `(m - 1)(k - 1)(l - 1) + 1` and are compared via `cast`. -/
 theorem P016 {m k l : ℕ}
   (hm : m ≥ 1) (hk : k ≥ 1) (hl : l ≥ 1)
   (A : Tensor 𝔽 n m) (B : Tensor 𝔽 n k) (C : Tensor 𝔽 n l) :

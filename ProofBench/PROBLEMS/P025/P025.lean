@@ -1,28 +1,3 @@
-/-
-## Introduction
-This file challenges you to prove **Theorem 1 of Kurkofka–Planken**,
-*A characterisation of all vertex-transitive finite graphs of connectivity < 5*:
-
-> A quasi-4-connected finite graph `G` is vertex-transitive **if and only if**
-> `G` is one of ten explicitly described graph families.
-
-The ten alternatives are bundled as `TheoremOneAlternatives G` below; they
-range over regular quasi-5-connected graphs, `K₄`/`C₄`-expansions, the prism,
-the line graph of the cube, and several *cycle-decomposition* families
-(cycles of `K₄`-, `C₄`-, `K₂,₂`-, or triangle-bags) in the sense of
-Definition 2.3 of the paper.
-
-The supporting vocabulary is fixed setup:
-
-* `QuasiKConnected`, `Separation`  — from `…Connectivity.VertexConnected`;
-* the cycle-decomposition classes
-  `GraphDecomp G (cycleGraph l)`);
-* `HExpansion` / `IsExpansion`  — the `H`-expansion construction (replace each
-  vertex by a copy of `H`, each edge by a perfect matching).
-
-Only the final `theorem P025` is to be proved.
--/
-
 import Mathlib.Combinatorics.SimpleGraph.Circulant
 import Mathlib.Combinatorics.SimpleGraph.Connectivity.Connected
 import Mathlib.Combinatorics.SimpleGraph.LineGraph
@@ -39,10 +14,11 @@ universe u v
 
 variable {V : Type u} [Fintype V] [DecidableEq V]
 
-/-- The paper's `2`-quasi-5-connected condition. -/
+/-- The paper's `2`-quasi-`5`-connected condition: quasi-`4`-connected, and every proper
+separation of order at most `4` has a side with at most two vertices. -/
 def TwoQuasi5Connected (G : SimpleGraph V) : Prop :=
   QuasiKConnected G 4 ∧
-    ∀ S : Separation G, S.order ≤ 4 →
+    ∀ S : Separation G, S.IsProper → S.order ≤ 4 →
       (S.A \ S.B).card ≤ 2 ∨ (S.B \ S.A).card ≤ 2
 
 /-- `Gexp` is a `K₃`-expansion of `G`. -/
@@ -89,12 +65,14 @@ def CaseIII (G : SimpleGraph V) [DecidableRel G.Adj] : Prop :=
         IsK4Expansion G' (G.map e) ∨
           (VertexTransitive G ∧ IsC4Expansion G' (G.map e))
 
-/-- Case (ix): the base cycle of `K₂,₂`-bags and its expansions. -/
+/-- Case (ix): the base cycle of `K₂,₂`-bags and its expansions.  In the paper a "cycle of
+`X`-bags" is by definition quasi-`4`-connected; for `G` itself this is the hypothesis of the
+theorem, for the base graph `G'` of an expansion it is required here. -/
 def CaseIX (G : SimpleGraph V) [DecidableRel G.Adj] : Prop :=
   (∃ l : Nat, IsCycleOfK22Bags G l) ∨
     ∃ (V' : Type u) (_ : Fintype V') (_ : DecidableEq V')
       (G' : SimpleGraph V') (_ : DecidableRel G'.Adj),
-      (∃ l : Nat, IsCycleOfK22Bags G' l) ∧
+      QuasiKConnected G' 4 ∧ (∃ l : Nat, IsCycleOfK22Bags G' l) ∧
         ∃ e : V ≃ V' × Fin 4,
           IsK4Expansion G' (G.map e) ∨
             (VertexTransitive G ∧ IsC4Expansion G' (G.map e))
@@ -122,7 +100,7 @@ def TheoremOneAlternatives (G : SimpleGraph V) [DecidableRel G.Adj] : Prop :=
 
 /- Do not modify above this line. -/
 
-/-- **Theorem 1 (Kurkofka–Planken).** A quasi-4-connected finite graph `G` is
+/-- Theorem 1 of Kurkofka–Planken, arXiv:2602.09811: a quasi-4-connected finite graph `G` is
 vertex-transitive if and only if `G` is one of the ten families collected in
 `TheoremOneAlternatives`. -/
 theorem P025 (G : SimpleGraph V) [DecidableRel G.Adj] :

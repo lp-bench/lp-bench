@@ -48,10 +48,10 @@ def RainbowCycleThreshold (f : ℝ → ℝ) : Prop :=
         C * f (Fintype.card V : ℝ) ≤ averageDegree G →
         ContainsRainbowCycle G chi
 
-/-- **Theorem 1.1** of "Essentially tight bounds for rainbow cycles in proper
-edge-colourings": there is an absolute constant `C > 0` such that every
-properly edge-coloured graph on `n ≥ 3` vertices with average degree at least
-`C · log n · log log n` contains a rainbow cycle. -/
+/-- Theorem 1.1 of Alon–Bucić–Sauermann–Zakharov–Zamir, arXiv:2309.04460:
+there is an absolute constant `C > 0` such that every properly edge-coloured
+graph on `n ≥ 3` vertices with average degree at least `C · log n · log log n`
+contains a rainbow cycle. -/
 theorem P045 : RainbowCycleThreshold.{u, v}
     (fun n => Real.log n * Real.log (Real.log n)) := by
   sorry

@@ -1,8 +1,3 @@
-/-
-Copyright (c) 2026 ProofBench participants. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: ProofBench participants
--/
 import Mathlib.Combinatorics.SimpleGraph.CompleteMultipartite
 import ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.RotationSystem
 

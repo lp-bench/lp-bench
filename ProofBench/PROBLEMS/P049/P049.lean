@@ -1,5 +1,3 @@
-/- Paper: Counting Perfect Matchings in Dirac Hypergraphs (Kwan–Safavi–Wang,
-arXiv:2408.09589). -/
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Combinatorics.Hypergraph.Basic
 import Mathlib.Data.Finset.Max
@@ -15,8 +13,6 @@ namespace CountingPerfectMatchingsInDiracHypergraphs
 
 attribute [local instance] Classical.dec
 
-/-! ## Finite hypergraphs and degrees -/
-
 /-- A hypergraph uses every vertex of its ambient finite type. -/
 def IsSpanning {V : Type*} (G : Hypergraph V) : Prop :=
   V(G) = Set.univ
@@ -31,6 +27,7 @@ noncomputable def edgeFinset {V : Type*} [Fintype V]
   classical
   exact Finset.univ.filter fun e => e ∈ E(G)
 
+/-- Membership in `edgeFinset` is membership in the edge set. -/
 @[simp] theorem mem_edgeFinset {V : Type*} [Fintype V]
     (G : Hypergraph V) (e : Set V) :
     e ∈ edgeFinset G ↔ e ∈ E(G) := by
@@ -42,6 +39,7 @@ noncomputable def dSubsets (V : Type*) [Fintype V] (d : ℕ) : Finset (Set V) :=
   classical
   exact Finset.univ.filter fun S => Set.ncard S = d
 
+/-- Membership in `dSubsets V d` means having exactly `d` elements. -/
 @[simp] theorem mem_dSubsets {V : Type*} [Fintype V] (d : ℕ) (S : Set V) :
     S ∈ dSubsets V d ↔ Set.ncard S = d := by
   classical
@@ -53,9 +51,9 @@ noncomputable def degreeAt {V : Type*} [Fintype V]
   exact ((edgeFinset G).filter fun e => S ⊆ e).card
 
 /--
-The minimum `d`-degree `δ_d(G)`.  The edge count is inserted as a harmless
-upper sentinel, making the definition total even when the ambient type has no
-`d`-set.  Whenever a `d`-set exists, this is exactly the minimum of its degrees.
+The minimum `d`-degree `δ_d(G)`.  The edge count is added as an upper
+sentinel so that the minimum is always defined; whenever a `d`-set exists,
+this is the usual minimum of the degrees of `d`-sets.
 -/
 noncomputable def minimumDdegree {V : Type*} [Fintype V]
     (G : Hypergraph V) (d : ℕ) : ℕ := by
@@ -63,6 +61,7 @@ noncomputable def minimumDdegree {V : Type*} [Fintype V]
   let degrees := (dSubsets V d).image (degreeAt G)
   exact (insert (edgeFinset G).card degrees).min' (by simp)
 
+/-- The minimum `d`-degree is at most the degree of every `d`-set. -/
 theorem minimumDdegree_le_degreeAt {V : Type*} [Fintype V]
     (G : Hypergraph V) {d : ℕ} {S : Set V} (hS : Set.ncard S = d) :
     minimumDdegree G d ≤ degreeAt G S := by
@@ -71,8 +70,6 @@ theorem minimumDdegree_le_degreeAt {V : Type*} [Fintype V]
   right
   apply Finset.mem_image.mpr
   exact ⟨S, (mem_dSubsets d S).mpr hS, rfl⟩
-
-/-! ## Perfect matchings and their number -/
 
 /-- A finite collection of pairwise disjoint edges covering every vertex. -/
 def IsPerfectMatching {V : Type*} (G : Hypergraph V)
@@ -87,6 +84,7 @@ noncomputable def perfectMatchings {V : Type*} [Fintype V]
   classical
   exact Finset.univ.filter (IsPerfectMatching G)
 
+/-- Membership in `perfectMatchings G` is being a perfect matching. -/
 @[simp] theorem mem_perfectMatchings {V : Type*} [Fintype V]
     (G : Hypergraph V) (M : Finset (Set V)) :
     M ∈ perfectMatchings G ↔ IsPerfectMatching G M := by
@@ -97,8 +95,6 @@ noncomputable def perfectMatchings {V : Type*} [Fintype V]
 noncomputable def perfectMatchingCount {V : Type*} [Fintype V]
     (G : Hypergraph V) : ℕ :=
   (perfectMatchings G).card
-
-/-! ## Fractional perfect matchings and entropy -/
 
 /--
 Definition 1.1: a fractional perfect matching.  Weights are zero off the edge
@@ -115,7 +111,7 @@ structure FractionalPerfectMatching {V : Type*} [Fintype V]
 
 namespace FractionalPerfectMatching
 
-/-- The conventionally extended summand `x log(1/x)`, with value zero at `x=0`. -/
+/-- The summand `x log(1/x)`, with the convention that it is zero at `x = 0`. -/
 noncomputable def entropySummand (x : ℝ) : ℝ :=
   if x = 0 then 0 else x * Real.log (1 / x)
 
@@ -126,12 +122,10 @@ noncomputable def entropy {V : Type*} [Fintype V] {G : Hypergraph V}
 
 end FractionalPerfectMatching
 
-/-- Definition 1.2: the supremum of fractional-perfect-matching entropies. -/
+/-- Definition 1.2: `h(G)`, the supremum of fractional-perfect-matching entropies. -/
 noncomputable def hypergraphEntropy {V : Type*} [Fintype V]
     (G : Hypergraph V) : ℝ :=
   sSup {h : ℝ | ∃ x : FractionalPerfectMatching G, x.entropy = h}
-
-/-! ## Finite and asymptotic Dirac thresholds -/
 
 /-- A degree bound forces a perfect matching in every spanning `k`-graph. -/
 def ForcesPerfectMatching (d k n threshold : ℕ) : Prop :=
@@ -146,8 +140,8 @@ noncomputable def diracThreshold (d k n : ℕ) : ℕ :=
   sInf {threshold : ℕ | ForcesPerfectMatching d k n threshold}
 
 /--
-The number `α` is the asymptotic Dirac threshold `α_d(k)`.  Parameterizing
-`n = k*m` expresses the paper's limit along integers divisible by `k`.
+The number `α` is the asymptotic Dirac threshold `α_d(k)` of Definition 1.6.
+The limit is taken along `n = k*m`, i.e. along integers divisible by `k`.
 -/
 def IsAsymptoticDiracThreshold (d k : ℕ) (α : ℝ) : Prop :=
   Tendsto
@@ -156,7 +150,7 @@ def IsAsymptoticDiracThreshold (d k : ℕ) (α : ℝ) : Prop :=
         (Nat.choose (k * m - d) (k - d) : ℝ))
     atTop (𝓝 α)
 
-/-- Definition 2.1, uniformly for a family with `n = k*m` vertices. -/
+/-- Definition 2.1, eventually in `m`, for a family with `n = k*m` vertices. -/
 def IsDiracFamily (d k : ℕ) (γ α : ℝ)
     (G : (m : ℕ) → Hypergraph (Fin (k * m))) : Prop :=
   ∀ᶠ m : ℕ in atTop,
@@ -165,11 +159,9 @@ def IsDiracFamily (d k : ℕ) (γ α : ℝ)
         (α + γ) * (Nat.choose (k * m - d) (k - d) : ℝ) ≤
           (minimumDdegree (G m) d : ℝ)
 
-/-! ## The logarithmic asymptotic and its lower/upper sandwich -/
-
 /--
-The normalized logarithmic error in Theorem 1.7.  Its convergence to zero is
-equivalent to the paper's `exp(h(G)) (1/e + o(1))^((1-1/k)n)` formulation.
+The normalized logarithmic error `(log Φ(G) - h(G) + (1-1/k)n)/n`.  Its
+convergence to zero is equivalent to `Φ(G) = e^{h(G)} (1/e + o(1))^{(1-1/k)n}`.
 -/
 noncomputable def normalizedCountingError {V : Type*} [Fintype V]
     (k : ℕ) (G : Hypergraph V) : ℝ :=
@@ -182,15 +174,11 @@ def HasEntropyCountingAsymptotic (k : ℕ)
     (G : (m : ℕ) → Hypergraph (Fin (k * m))) : Prop :=
   Tendsto (fun m => normalizedCountingError k (G m)) atTop (𝓝 0)
 
-/-! ## Main theorem -/
-
 /--
-**Theorem 1.7 (Counting Perfect Matchings in Dirac Hypergraphs).**
-
-Fix `1 ≤ d < k` and `γ > 0`.  If `α` is the limiting normalized `d`-degree
-Dirac threshold, then every family of `k`-uniform hypergraphs whose minimum
-`d`-degree eventually exceeds `(α+γ) * choose (n-d) (k-d)` satisfies the
-entropy formula for its number of perfect matchings.
+For `1 ≤ d < k` and `γ > 0`, every family of `k`-graphs with minimum
+`d`-degree at least `(α_d(k)+γ) * choose (n-d) (k-d)` has
+`e^{h(G)} (1/e + o(1))^{(1-1/k)n}` perfect matchings.
+Theorem 1.7 of Kwan–Safavi–Wang, arXiv:2408.09589.
 -/
 theorem P049
     (d k : ℕ) (hd : 1 ≤ d) (hdk : d < k)

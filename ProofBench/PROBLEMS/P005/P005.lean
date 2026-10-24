@@ -19,6 +19,10 @@ def ErdosHajnalConjectureFor [Fintype W] : Prop :=
       (G.IsNClique n s ∨ Gᶜ.IsNClique n s) ∧
       (n : ℝ) ≥ (Fintype.card V : ℝ) ^ (c : ℝ)
 
+/-- The Erdős–Hajnal conjecture for every path `pathGraph r` on `r` vertices. -/
 def EHforPaths : Prop := ∀ r : ℕ, ErdosHajnalConjectureFor (pathGraph r)
 
+/-- **The Erdős–Hajnal conjecture for paths** (Erdős–Hajnal 1989, case `H = P_r`): for
+every `r` there is `c > 0` such that every finite `P_r`-free graph has a clique or
+independent set of size at least `|V|^c`. -/
 theorem P005 : EHforPaths := sorry

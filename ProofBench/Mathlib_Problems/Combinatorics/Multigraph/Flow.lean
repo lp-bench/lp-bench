@@ -10,11 +10,9 @@ noncomputable def firstEnd (e : E) : V := (M.ends e).out.1
 /-- The second endpoint of an edge in a fixed representative orientation. -/
 noncomputable def secondEnd (e : E) : V := (M.ends e).out.2
 
-/-- A nowhere-zero `A`-flow with respect to the representative orientation:
-every value is nonzero and Kirchhoff's law holds at every vertex, `f e`
-leaving `firstEnd e` and entering `secondEnd e`.  Reorienting an edge
-corresponds to negating its value, so the orientation choice is immaterial;
-a loop enters both sums and cancels, so loops are unconstrained. -/
+/-- A nowhere-zero `A`-flow: every value is nonzero and Kirchhoff's law holds at every vertex, with
+`f e` leaving `firstEnd e` and entering `secondEnd e`. Reversing an edge amounts to negating its
+value, so the choice of orientation is immaterial; loops cancel and are unconstrained. -/
 def IsNowhereZeroFlow [Fintype E] [DecidableEq V] {A : Type*} [AddCommGroup A]
     (f : E → A) : Prop :=
   (∀ e, f e ≠ 0) ∧

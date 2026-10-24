@@ -15,14 +15,14 @@ and Universität Hamburg.
 | Category    | Problems | What it means                                          |
 |-------------|---------:|--------------------------------------------------------|
 | Open        | 34       | open conjectures: prove the statement or its negation  |
-| Research    | 68       | results proved in the research literature              |
-| Calibration | 14       | elementary or textbook results, to check an evaluation |
+| Research    | 61       | results proved in the research literature              |
+| Calibration | 21       | elementary or textbook results, to check an evaluation |
 
-By Mathematics Subject Classification, 83 problems are in graph theory (05C), 8
+By Mathematics Subject Classification, 82 problems are in graph theory (05C), 8
 in designs, configurations and matroids (05B) and 6 in extremal combinatorics
-(05D); the other 19 range over number theory, discrete and convex geometry,
-group theory, probability, order theory, set theory and theoretical computer
-science. Browse them on the [website](https://proof-bench.github.io/problems.html)
+(05D); the other 20 range over other parts of combinatorics, number theory,
+discrete and convex geometry, group theory, linear algebra, topology,
+probability, order theory, set theory and theoretical computer science. Browse them on the [website](https://proof-bench.github.io/problems.html)
 or in [`Database.json`](ProofBench/DATABASE/Database.json).
 
 ## An example
@@ -68,9 +68,9 @@ use. Versions: Lean 4.34.1, Mathlib v4.34.1, and Matroid from the branch
 [`proofbench-v4.34.1`](https://github.com/utkuokur/Matroid/tree/proofbench-v4.34.1)
 of a fork, which adapts the library to that Mathlib release.
 
-To attempt a problem, open its file, replace the `sorry` and build it again. A
-few files contain more than one `sorry` (P015, P017, P070); every one of them
-must be replaced.
+To attempt a problem, open its file, replace the `sorry` and build it again. Two
+files contain more than one `sorry` (P017, P070); every one of them must be
+replaced.
 
 ## What counts as a solution
 
@@ -93,7 +93,7 @@ checked by hand.
 ProofBench/PROBLEMS/Pxxx/Pxxx.lean            the problem: one theorem, proof replaced by sorry
 ProofBench/PROBLEMS/Pxxx/Pxxx_DISPROVE.lean   its negation (open problems only)
 ProofBench/Mathlib_Problems/                  definitions needed to state the problems
-                                              but missing from Mathlib (49 modules)
+                                              but missing from Mathlib (53 modules)
 ProofBench/DATABASE/Database.json             per problem: id, name, category, MSC class,
                                               informal statement (LaTeX), summary, Lean statement
 ```

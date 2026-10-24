@@ -7,7 +7,6 @@ public import Mathlib.Combinatorics.SimpleGraph.Paths
 namespace SimpleGraph.Walk
 variable {V : Type*} {G : SimpleGraph V} {u u' v w : V}
 
--- TODO: Rename in mathlib
 section DecidableEq
 variable [DecidableEq V]
 

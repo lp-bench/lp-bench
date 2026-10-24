@@ -2,10 +2,6 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Combinatorics.SimpleGraph.Coloring.Vertex
 import Mathlib.Data.Finset.Powerset
 
-/- ---------------------------------------------------------------- -/
-/- Paper: COLOURING THE 1-SKELETON OF d-DIMENSIONAL TRIANGULATIONS -/
-/- ---------------------------------------------------------------- -/
-
 namespace TriangulationColouring
 
 /-- The faces with exactly `n` vertices of the simplicial complex spanned by `chambers`;
@@ -78,11 +74,9 @@ end TriangulationColouring
 
 open TriangulationColouring TriangulationColouring.Triangulation
 
-/-- **Theorem 1 (Planken).** Let `d ≥ 2` and let `C` be a triangulation of the `d`-sphere.
-The 1-skeleton of `C` has a proper `(d+2)`-colouring if and only if `C` has a subdivision
-in which the number of `(d-1)`-cells incident with any `(d-2)`-cell is divisible by three.
-Moreover, for `d = 3` both are equivalent to the maximal subdivision of `C` having a
-2-edge-colouring without monochromatic 2-cells. -/
+/-- Theorem 1 of Planken, arXiv:2409.11762: for `d ≥ 2` and a triangulation `C` of the
+`d`-sphere, the 1-skeleton of `C` is `(d+2)`-colourable iff `C` is `Subdividable`; for
+`d = 3` both are also equivalent to `MaximalSubdivisionBichromatic`. -/
 theorem P099 (d : ℕ) (_hd : 2 ≤ d) (C : Triangulation d) :
     (C.skeleton.Colorable (d + 2) ↔ C.Subdividable) ∧
       (d = 3 → (C.skeleton.Colorable (d + 2) ↔ C.MaximalSubdivisionBichromatic)) := by

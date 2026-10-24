@@ -4,8 +4,6 @@ namespace P070
 
 open FirstOrder Language
 
-/-! ### The language of set theory -/
-
 /-- The relation symbols of the language of set theory: a single binary
 relation `∈`. -/
 inductive ZFCRel : ℕ → Type
@@ -19,18 +17,11 @@ def zfcLang : Language :=
 /-- The membership relation symbol of `zfcLang`. -/
 def memRel : zfcLang.Relations 2 := ZFCRel.mem
 
-/-- Bounded formulas of set theory with `n` free de Bruijn variables.
-
-Convention (Mathlib's): in a fully quantified sentence read outside-in, the
-first quantifier binds index `0`, the second index `1`, and so on; a
-quantifier applied to a `Fm (n + 1)` binds index `n`. -/
+/-- Bounded formulas of set theory with `n` free de Bruijn variables. As in Mathlib,
+a quantifier applied to a `Fm (n + 1)` binds index `n`, so in a sentence the outermost
+quantifier binds index `0`. The helpers below take raw indices, and a helper producing
+a `Fm n` numbers its own quantified variables from `n` on. -/
 abbrev Fm (n : ℕ) : Type := zfcLang.BoundedFormula Empty n
-
-/-! ### Atomic formula helpers
-
-All terms of `zfcLang` are variables, so formula combinators below take raw
-de Bruijn *indices* (`ℕ`) rather than terms; the autoparams discharge the
-bound checks. -/
 
 /-- The atomic formula `xᵢ ∈ xⱼ`. -/
 def memF {n : ℕ} (i j : ℕ) (hi : i < n := by omega) (hj : j < n := by omega) : Fm n :=
@@ -39,11 +30,6 @@ def memF {n : ℕ} (i j : ℕ) (hi : i < n := by omega) (hj : j < n := by omega)
 /-- The atomic formula `xᵢ = xⱼ`. -/
 def eqF {n : ℕ} (i j : ℕ) (hi : i < n := by omega) (hj : j < n := by omega) : Fm n :=
   Term.var (Sum.inr ⟨i, hi⟩) =' Term.var (Sum.inr ⟨j, hj⟩)
-
-/-! ### Defined notions
-
-Each helper states a property of variables with indices below `n`; freshly
-quantified variables inside a helper start at index `n`. -/
 
 /-- `xᵢ ⊆ xⱼ` : every element of `xᵢ` is an element of `xⱼ`. -/
 def subsetF {n : ℕ} (i j : ℕ) (hi : i < n := by omega) (hj : j < n := by omega) : Fm n :=
@@ -97,8 +83,6 @@ def isOmegaF {n : ℕ} (w : ℕ) (hw : w < n := by omega) : Fm n :=
 def isPowF {n : ℕ} (p w : ℕ) (hp : p < n := by omega) (hw : w < n := by omega) : Fm n :=
   ∀' ((memF n p) ⇔ (subsetF n w))
 
-/-! ### The ZFC axioms -/
-
 /-- Extensionality: sets with the same elements are equal. -/
 def extensionalityAx : zfcLang.Sentence :=
   ∀' ∀' ((∀' ((memF 2 0) ⇔ (memF 2 1))) ⟹ (eqF 0 1))
@@ -137,17 +121,13 @@ def choiceAx : zfcLang.Sentence :=
           (∃' ((memF 3 2) ⊓ (memF 3 1) ⊓
             (∀' (((memF 4 2) ⊓ (memF 4 1)) ⟹ (eqF 4 3)))))))))
 
-/-- The separation (subset) axiom for a formula `φ` whose free variables are
-parameters `x₀, …, x_{k-1}` and the element variable `x_k`:
-
-`∀ params ∀ A ∃ S ∀ z (z ∈ S ↔ z ∈ A ∧ φ(params, z))`. -/
+/-- The separation axiom for a formula `φ` with parameters `x₀, …, x_{k-1}` and
+element variable `x_k`: `∀ params ∀ A ∃ S ∀ z (z ∈ S ↔ z ∈ A ∧ φ(params, z))`. -/
 def separationAx {k : ℕ} (φ : Fm (k + 1)) : zfcLang.Sentence :=
   (∀' ∃' ∀' ((memF (k + 2) (k + 1)) ⇔ ((memF (k + 2) k) ⊓ (φ.liftAt 2 k)))).alls
 
-/-- The replacement axiom for a formula `φ` whose free variables are
-parameters `x₀, …, x_{k-1}`, the argument variable `x_k` and the value
-variable `x_{k+1}`:
-
+/-- The replacement axiom for a formula `φ` with parameters `x₀, …, x_{k-1}`,
+argument variable `x_k` and value variable `x_{k+1}`:
 `∀ params ∀ A ((∀ x ∈ A, ∃! y, φ(x, y)) → ∃ B ∀ x ∈ A ∃ y ∈ B, φ(x, y))`. -/
 def replacementAx {k : ℕ} (φ : Fm (k + 2)) : zfcLang.Sentence :=
   (∀' ((∀' ((memF (k + 1) k) ⟹
@@ -155,57 +135,36 @@ def replacementAx {k : ℕ} (φ : Fm (k + 2)) : zfcLang.Sentence :=
     ⟹ (∃' (∀' ((memF (k + 2) k) ⟹
         (∃' ((memF (k + 3) (k + 1)) ⊓ (φ.liftAt 2 k)))))))).alls
 
-/-- First-order ZFC: the core axioms together with the separation and
-replacement schemas (over all parameter counts). -/
+/-- First-order ZFC: the eight axioms above together with the separation and
+replacement schemas for all formulas and all numbers of parameters. -/
 def ZFC : zfcLang.Theory :=
   {extensionalityAx, emptySetAx, pairingAx, unionAx, powersetAx, infinityAx,
       foundationAx, choiceAx}
     ∪ Set.range (fun p : (k : ℕ) × Fm (k + 1) => separationAx p.2)
     ∪ Set.range (fun p : (k : ℕ) × Fm (k + 2) => replacementAx p.2)
 
-/-! ### The Continuum Hypothesis -/
-
-/-- The Continuum Hypothesis, in the form: every set that injects into
-`P(ω)` either injects into `ω` or admits an injection from `P(ω)`.
-
-Over ZFC (using choice for cardinal comparability and Cantor–Schröder–
-Bernstein) this is equivalent to the textbook statement that no cardinality
-lies strictly between `|ω|` and `|P(ω)|`, i.e. `2 ^ ℵ₀ = ℵ₁`. -/
+/-- The Continuum Hypothesis: every set that injects into `P(ω)` either injects
+into `ω` or admits an injection from `P(ω)`. Over ZFC this is equivalent to
+`2 ^ ℵ₀ = ℵ₁`. -/
 def CH : zfcLang.Sentence :=
   ∀' ∀' (((isOmegaF 0) ⊓ (isPowF 1 0)) ⟹
     (∀' ((injectsF 2 1) ⟹ ((injectsF 2 0) ⊔ (injectsF 1 2)))))
 
-/-! ### The challenge -/
-
-/-- `φ` is independent of `T`: `T` neither semantically entails `φ` nor its
-negation.  Mathlib's model theory has no syntactic proof calculus, so
-consequence is stated semantically; by the Gödel completeness theorem this
-agrees with the provability reading. -/
+/-- `φ` is independent of `T`: `T` semantically entails neither `φ` nor `¬φ`.
+Consequence is semantic since Mathlib has no proof calculus for first-order logic;
+by Gödel's completeness theorem this agrees with provability. -/
 def Independent (T : zfcLang.Theory) (φ : zfcLang.Sentence) : Prop :=
   ¬ T ⊨ᵇ φ ∧ ¬ T ⊨ᵇ ∼φ
 
-/-- **Option A**: the Continuum Hypothesis is a semantic consequence of the
-deep-embedded first-order `ZFC`.  This problem is three-optioned: exactly one
-of `P070_proof`, `P070_refutation`, `P070` is provable, and a correct
-submission proves exactly one of them sorry-free (axioms at most `propext`,
-`Classical.choice`, `Quot.sound`).  A kernel-checked proof of THIS option
-would witness an inconsistency of Lean itself. -/
+/-- Not the target of this problem: the claim that `ZFC` entails `CH`. -/
 theorem P070_proof : ZFC ⊨ᵇ CH := sorry
 
-/-- **Option B**: the negation of the Continuum Hypothesis is a semantic
-consequence of `ZFC`.  As with Option A, a kernel-checked proof would
-witness an inconsistency of Lean itself. -/
+/-- Not the target of this problem: the claim that `ZFC` entails `¬CH`. -/
 theorem P070_refutation : ZFC ⊨ᵇ ∼CH := sorry
 
 set_option linter.dupNamespace false in
-/-- **Option C, the futility certificate and the expected submission**: the
-Continuum Hypothesis is independent of `ZFC` — the task posed by Options A
-and B cannot be completed.  The certificate is unconditional (no "unless
-ZFC is inconsistent" hypothesis): Lean's universes provide models of the
-embedded `ZFC`, so independence is a flat theorem, witnessed by exhibiting
-models of `ZFC + CH` (Gödel's constructible universe) and of `ZFC + ¬CH`
-(Cohen forcing).  The Flypitch project (Han–van Doorn, CPP 2020) proved
-exactly this in Lean 3. -/
+/-- The Continuum Hypothesis is independent of `ZFC` (Gödel 1938, Cohen 1963;
+formalised in Lean 3 by Han–van Doorn, CPP 2020). -/
 theorem P070 : Independent ZFC CH := sorry
 
 end P070

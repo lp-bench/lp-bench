@@ -11,7 +11,8 @@ def IsLatinSq : Prop :=
   (∀ r, Injective (M r ·)) ∧
   (∀ c, Injective (M · c))
 
--- For a Latin square indexed by S, we can define partial transversal.
+/-- `cells` is a partial transversal of `M`: its cells lie in distinct rows and distinct
+columns and carry distinct symbols. -/
 structure IsPT (cells : Finset (S × S)) where
   row_cond : Set.InjOn Prod.fst (cells : Set (S × S))
   col_cond : Set.InjOn Prod.snd (cells : Set (S × S))
@@ -19,9 +20,8 @@ structure IsPT (cells : Finset (S × S)) where
 
 variable [Fintype S]
 
--- Theorem by Klaas K. Koksma (1969)
--- Any Latin square of size n ≥ 7 has a partial transversal
--- (2 * n + 1) / 3
+/-- **Koksma's theorem** (Koksma 1969): every Latin square of size `n ≥ 7` has a partial
+transversal of size at least `(2n + 1) / 3`, i.e. of size `T` with `3T ≥ 2n + 1`. -/
 theorem P012 {hM : IsLatinSq M}
    {hN : Fintype.card S ≥ 7} :
-    ∃ pt, IsPT M pt ∧ #pt ≥ (2 * (Fintype.card S) + 1) / 3 := sorry
+    ∃ pt, IsPT M pt ∧ 3 * #pt ≥ 2 * (Fintype.card S) + 1 := sorry

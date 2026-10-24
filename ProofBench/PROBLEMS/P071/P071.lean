@@ -6,95 +6,20 @@ import Mathlib.Data.Fintype.BigOperators
 import Mathlib.Order.Filter.AtTopBot.Basic
 import Mathlib.Tactic
 
-/- ---------------------------------------------------- -/
-/- Paper: Bipartite Unique-Neighbour Expanders via Ramanujan Graphs -/
-/- ---------------------------------------------------- -/
-
-/-!
-# P071: Bipartite unique-neighbour expanders via Ramanujan graphs
-
-This file formalizes the combinatorial core and the main theorem of
-
-  R. Asherov and I. Dinur, *Bipartite unique-neighbour expanders via Ramanujan
-  graphs*, arXiv:2301.03072.
-
-## The paper's dependency graph
-
-The dependency graph for Theorem 1 is:
-
-* Section 3.1: bipartite neighbourhoods `N(S)`, unique neighbours, and the
-  various notions of expansion;
-* Theorem 3 (quoted from Ballantine et al.): explicit `(q+1, q^3+1)`-biregular
-  Ramanujan graphs;
-* Theorem 2: the average right-degree bound
-  `c|S| / |N(S)| <= 1 + (1+eps) * sqrt((d-1)/(c-1))` for biregular Ramanujan
-  graphs, proved by counting non-backtracking paths (Lemmas 7-10);
-* Lemma 11: existence of a fixed-size gadget with the unique-neighbour
-  property, by the probabilistic method;
-* Section 6.1: the *routed product* `G (x) G0`;
-* Lemma 12: unique neighbours are inherited from the gadget by the routed
-  product;
-* Section 6.2: Theorem 1, obtained by combining Theorem 2, Lemma 11 and
-  Lemma 12.
-
-## What is formalized here
-
-The target of the problem is the paper's main theorem, **Theorem 1**, stated
-at the end of this file as `bipartite_uniqueNeighbour_expanders_exist` and
-proved by `sorry`, the single `sorry` of the file.  Everything else below is
-proved from first principles with no `sorry` and no new axioms:
-
-* `exists_uniqueNeighbour_of_card_lt`, the counting argument recorded in
-  Section 2 ("if a set expands by a factor of more than `c/2`, then it has
-  unique neighbours"), which is what makes lossless expanders
-  unique-neighbour expanders;
-* `routedProduct`, the definition of Section 6.1;
-* `card_filter_routedProduct_eq_one`, which is **Lemma 12**;
-* `exists_uniqueNeighbour_routedProduct`, which is the final assembly step of
-  Section 6.2: a right vertex of small induced degree together with a good
-  gadget produces a unique neighbour in the routed product;
-* `BipartiteMultigraph`, `BipartiteMultigraph.IsBiregular` and
-  `IsUniqueNeighbourExpanderFamily`: the objects of Section 1 and Section 3.1
-  in which Theorem 1 is phrased.
-
-## What is deliberately not asserted
-
-* The clause "polynomial-time construction" of Theorem 1 (and the word
-  *explicit* in Theorem 3): these are statements about a model of computation
-  and are not expressible in the present development.  Only the existence of
-  the family and its expansion are stated.
-* Theorem 2 (spectral, via non-backtracking path counts) and Lemma 11 (a
-  probabilistic existence statement).  Theorem 1 is exactly
-  `exists_uniqueNeighbour_routedProduct` fed with those two inputs; the upper
-  layer `P071_UB.lean` records that derivation.
-* The proof of Section 6.2 takes a gadget with `R0 = (q^3+1) / (alpha (q+1))`
-  right vertices, so it tacitly needs this number to be an integer, a proviso
-  that the printed statement of Theorem 1 does not include.  The statement is
-  formalized as printed; the proviso appears only in the gadget hypothesis of
-  `P071_UB.lean`.
-
-A bipartite graph is presented, as in the paper, by the neighbourhood function
-of its left side: `nbr u` is the set of right vertices adjacent to `u`.  Since
-`N(S)` and "unique neighbour" only ever refer to the underlying simple
-incidence structure, no multiplicities are lost; degrees, which do count
-parallel edges, are handled by `BipartiteMultigraph` below.
--/
-
 namespace RamanujanRoutedProduct
 
 open Finset
 
 variable {L R : Type*} [DecidableEq L] [DecidableEq R]
 
-/-! ## Bipartite neighbourhoods and unique neighbours -/
-
-/-- `N(S)`: the neighbourhood of a set `S` of left vertices. -/
+/-- `N(S)`: the neighbourhood of a set `S` of left vertices. A bipartite graph is
+given, as in Asherov–Dinur, by the function `nbr` sending a left vertex to its set of
+right neighbours. -/
 def nbhd (nbr : L → Finset R) (S : Finset L) : Finset R :=
   S.biUnion nbr
 
-/-- The fibre of a right vertex `v` over `S`: the vertices of `S` adjacent to
-`v`.  Its cardinality is the degree of `v` in the subgraph induced by
-`S` and `N(S)`. -/
+/-- The fibre of a right vertex `v` over `S`: the vertices of `S` adjacent to `v`.
+Its size is the degree of `v` in the subgraph induced by `S` and `N(S)`. -/
 def fibre (nbr : L → Finset R) (S : Finset L) (v : R) : Finset L :=
   S.filter fun u => v ∈ nbr u
 
@@ -108,19 +33,14 @@ def IsUniqueNeighbour (nbr : L → Finset R) (S : Finset L) (v : R) : Prop :=
 def LeftRegular (nbr : L → Finset R) (c : ℕ) : Prop :=
   ∀ u : L, (nbr u).card = c
 
-/-- The unique-neighbour property of a fixed-size gadget: every nonempty set of
-at most `t` left vertices admits a unique neighbour.  This is the conclusion of
-Lemma 11. -/
+/-- The unique-neighbour property up to size `t`: every nonempty set of at most `t`
+left vertices has a unique neighbour (the property of the gadget in Lemma 11). -/
 def HasUniqueNeighbourProperty (nbr : L → Finset R) (t : ℕ) : Prop :=
   ∀ S : Finset L, S.Nonempty → S.card ≤ t → ∃ v : R, IsUniqueNeighbour nbr S v
 
-/-! ## Double counting in the induced subgraph -/
-
 omit [DecidableEq L] in
-/-- Double counting of the edges leaving `S`: summing the left degrees is the
-same as summing the induced right degrees over any set `N` containing `N(S)`.
-This is the identity behind the phrase "the total number of edges in the
-induced subgraph is `c|S|`" in Section 4. -/
+/-- Double counting: the left degrees over `S` and the induced right degrees over
+any `N ⊇ N(S)` have the same sum. -/
 theorem sum_card_nbr_eq_sum_card_fibre (nbr : L → Finset R) (S : Finset L)
     (N : Finset R) (hsub : ∀ u ∈ S, nbr u ⊆ N) :
     ∑ u ∈ S, (nbr u).card = ∑ v ∈ N, (fibre nbr S v).card := by
@@ -148,16 +68,9 @@ theorem one_le_card_fibre (nbr : L → Finset R) {S : Finset L} {v : R}
   simp only [fibre, Finset.mem_filter]
   exact ⟨hu, hvu⟩
 
-/-! ## Expansion beyond `c/2` forces unique neighbours
-
-This is the counting argument recorded in Section 2 of the paper: a bipartite
-graph whose small sets expand by more than a factor `c/2` is automatically a
-unique-neighbour expander.  It is the reason lossless expanders are
-unique-neighbour expanders. -/
-
 omit [DecidableEq L] in
-/-- If the left degrees on `S` all equal `c` and `S` expands by strictly more
-than a factor of `c/2`, then `S` has a unique neighbour. -/
+/-- If every vertex of `S` has degree `c` and `|N(S)| > c|S|/2`, then `S` has a
+unique neighbour (Section 2 of Asherov–Dinur). -/
 theorem exists_uniqueNeighbour_of_card_lt (nbr : L → Finset R) (c : ℕ)
     (S : Finset L) (hreg : ∀ u ∈ S, (nbr u).card = c)
     (hexp : c * S.card < 2 * (nbhd nbr S).card) :
@@ -178,33 +91,23 @@ theorem exists_uniqueNeighbour_of_card_lt (nbr : L → Finset R) (c : ℕ)
     simpa [smul_eq_mul, mul_comm] using h
   omega
 
-/-! ## The routed product (Section 6.1)
-
-Following the paper, the big `(c, d)`-biregular graph `G = (L ∪ R, E)` is
-presented through the function `E : R × [d] → L` sending a right vertex `v` and
-an index `i` to the `i`-th neighbour of `v`.  The gadget `G0` is a bipartite
-graph whose left side is `[d] = Fin d` and whose right side is `R0`; it is given
-by its left neighbourhood function `gnbr : Fin d → Finset R0`.
-
-The routed product `G (x) G0` has left side `L`, right side `R × R0`, and an
-edge between `E v i` and `(v, j)` for every edge `(i, j)` of `G0`. -/
-
 variable {R₀ : Type*} [DecidableEq R₀] [Fintype R₀]
 
-/-- The indexed neighbours of `v` that lie in `S`; the set written `S'` in
-Lemma 12. -/
+/-- The set `S'` of Lemma 12: the indices `i` for which the `i`-th neighbour
+`Ed v i` of the right vertex `v` lies in `S`. -/
 def gadgetTrace {d : ℕ} (Ed : R → Fin d → L) (S : Finset L) (v : R) : Finset (Fin d) :=
   Finset.univ.filter fun i => Ed v i ∈ S
 
-/-- The routed product `G (x) G0` of Section 6.1, given by the left
-neighbourhood function of its left side `L`.  A left vertex `x` is joined to
-`(v, j)` exactly when `x` is the `i`-th neighbour of `v` for some index `i`
-adjacent to `j` in the gadget. -/
+/-- The routed product of Section 6.1, with left side `L` and right side `R × R₀`.
+The big graph is given by `Ed v i`, the `i`-th neighbour of the right vertex `v`, and
+the gadget by `gnbr` on the left side `Fin d`; `x` is joined to `(v, j)` when
+`x = Ed v i` for some `i` adjacent to `j` in the gadget. -/
 def routedProduct {d : ℕ} [Fintype R] (Ed : R → Fin d → L)
     (gnbr : Fin d → Finset R₀) (x : L) : Finset (R × R₀) :=
   Finset.univ.filter fun p => ∃ i : Fin d, Ed p.1 i = x ∧ p.2 ∈ gnbr i
 
 omit [DecidableEq R] in
+/-- Membership in a neighbourhood of the routed product. -/
 @[simp]
 theorem mem_routedProduct {d : ℕ} [Fintype R] (Ed : R → Fin d → L)
     (gnbr : Fin d → Finset R₀) (x : L) (p : R × R₀) :
@@ -212,10 +115,8 @@ theorem mem_routedProduct {d : ℕ} [Fintype R] (Ed : R → Fin d → L)
   classical
   simp [routedProduct]
 
-/-- **Lemma 12.**  Let `S` be a set of left vertices and `v` a right vertex of
-the big graph, and let `gadgetTrace` be the set `S'` of indices of `v` whose
-neighbour lies in `S`.  If `j` is a unique neighbour of `S'` inside the gadget,
-then `(v, j)` is a unique neighbour of `S` in the routed product. -/
+/-- Lemma 12 of Asherov–Dinur: if `j` is a unique neighbour of `S' = gadgetTrace Ed S v`
+in the gadget, then `(v, j)` is a unique neighbour of `S` in the routed product. -/
 theorem card_filter_routedProduct_eq_one {d : ℕ} [Fintype R]
     (Ed : R → Fin d → L) (gnbr : Fin d → Finset R₀) (S : Finset L) (v : R)
     (j : R₀) (hj : IsUniqueNeighbour gnbr (gadgetTrace Ed S v) j) :
@@ -243,14 +144,9 @@ theorem card_filter_routedProduct_eq_one {d : ℕ} [Fintype R]
       exact ⟨hi₀S, ⟨i₀, rfl, hi₀j⟩⟩
   rw [IsUniqueNeighbour, hfib, Finset.card_singleton]
 
-/-- **The assembly step of Section 6.2.**  Suppose the gadget has the
-unique-neighbour property up to size `t` (Lemma 11), and suppose the big graph
-supplies a right vertex `v` whose induced degree in `S` is nonzero and at most
-`t`.  This last hypothesis is what Theorem 2 provides: the average induced
-right degree is at most `1 + (1+eps) * sqrt((d-1)/(c-1)) = 1 + (1+eps) q`,
-which is below `q + 1` once `eps < 1/q`, so some right vertex has induced
-degree at most `q + 1 = t`.  Then `S` has a unique neighbour in the routed
-product, which is the conclusion of Theorem 1. -/
+/-- If the gadget has the unique-neighbour property up to size `t` and `S` has a
+nonempty trace of size at most `t` at some right vertex `v`, then `S` has a unique
+neighbour in the routed product. -/
 theorem exists_uniqueNeighbour_routedProduct {d t : ℕ} [Fintype R]
     (Ed : R → Fin d → L) (gnbr : Fin d → Finset R₀)
     (hgadget : HasUniqueNeighbourProperty gnbr t) (S : Finset L) (v : R)
@@ -259,18 +155,9 @@ theorem exists_uniqueNeighbour_routedProduct {d t : ℕ} [Fintype R]
   obtain ⟨j, hj⟩ := hgadget (gadgetTrace Ed S v) hne hsmall
   exact ⟨(v, j), card_filter_routedProduct_eq_one Ed gnbr S v j hj⟩
 
-/-! ## Bipartite multigraphs and biregularity (Section 3.1)
-
-Section 3.1 works with graphs that may contain parallel edges but no loops,
-Lemma 11 explicitly allows parallel edges in the gadget, and the routed
-product inherits them.  A finite bipartite multigraph is therefore recorded by
-the sizes of its two sides and the number `mult u v` of edges between `u` and
-`v`.  Degrees count parallel edges, while `N(S)` and unique neighbours only see
-the underlying incidence structure `nbr`, exactly as in Section 3.1. -/
-
-/-- A finite bipartite multigraph `(L ⊔ R, E)` with left side `L = Fin nL`,
-right side `R = Fin nR` and `mult u v` parallel edges between `u ∈ L` and
-`v ∈ R`. -/
+/-- A finite bipartite multigraph with left side `Fin nL`, right side `Fin nR` and
+`mult u v` parallel edges between `u` and `v`; parallel edges are allowed, as in
+Section 3.1 of Asherov–Dinur. -/
 structure BipartiteMultigraph where
   /-- The number of left vertices `|L|`. -/
   nL : ℕ
@@ -281,11 +168,13 @@ structure BipartiteMultigraph where
 
 namespace BipartiteMultigraph
 
-/-- The neighbourhood function of the left side: `v ∈ nbr u` exactly when
-there is at least one edge between `u` and `v`. -/
+/-- The neighbourhood function of the left side: `v ∈ nbr u` when there is at least
+one edge between `u` and `v`. Neighbourhoods and unique neighbours ignore
+multiplicities; degrees count them. -/
 def nbr (G : BipartiteMultigraph) (u : Fin G.nL) : Finset (Fin G.nR) :=
   Finset.univ.filter fun v => 0 < G.mult u v
 
+/-- Membership in `nbr u`, unfolded. -/
 @[simp]
 theorem mem_nbr {G : BipartiteMultigraph} {u : Fin G.nL} {v : Fin G.nR} :
     v ∈ G.nbr u ↔ 0 < G.mult u v := by
@@ -306,42 +195,22 @@ def IsBiregular (G : BipartiteMultigraph) (c d : ℕ) : Prop :=
 
 end BipartiteMultigraph
 
-/-- **Section 1.**  A family `G n` of `(c, d)`-biregular bipartite graphs with
-`|L_n| + |R_n| → ∞` is a *unique neighbour expander family* if there is
-`δ > 0` such that for every `n` and every set of left vertices `S ⊆ L_n` of
-size `|S| ≤ δ |L_n|` there is a unique neighbour of `S` in `G n`.  The sets
-`S` are required to be nonempty, since the empty set has no unique
-neighbour. -/
+/-- A unique-neighbour expander family (Section 1): `(c, d)`-biregular multigraphs
+`G n` with `|L_n| + |R_n| → ∞` and some `δ > 0` such that every nonempty `S ⊆ L_n`
+with `|S| ≤ δ |L_n|` has a unique neighbour (the empty set has none). -/
 def IsUniqueNeighbourExpanderFamily (G : ℕ → BipartiteMultigraph) (c d : ℕ) : Prop :=
   (∀ n, (G n).IsBiregular c d) ∧
     Filter.Tendsto (fun n => (G n).nL + (G n).nR) Filter.atTop Filter.atTop ∧
     ∃ δ : ℝ, 0 < δ ∧ ∀ n, ∀ S : Finset (Fin (G n).nL), S.Nonempty →
       (S.card : ℝ) ≤ δ * ((G n).nL : ℝ) → ∃ v, IsUniqueNeighbour (G n).nbr S v
 
-/-! ## Theorem 1: the main theorem -/
-
 end RamanujanRoutedProduct
 
 open RamanujanRoutedProduct in
-/-- **Theorem 1** -- the main theorem of the paper.  There is a function
-`q̂ : ℕ × ℝ → ℕ` such that for every integer `c₀ > 5` and real number
-`α > 1`, if `q > q̂(c₀, α)` is a prime power and `α c₀ (q + 1)` is an integer,
-then there is an infinite family of `(c₀ (q + 1), α c₀ (q + 1))`-biregular
-unique neighbour expanders.
-
-Encoding notes.  `q̂` is curried as `qhat : ℕ → ℝ → ℕ`, and "`q` is a prime
-power" is `IsPrimePow q`.  "`α c₀ (q + 1)` is an integer" is encoded by
-quantifying over a natural number `d` with `(d : ℝ) = α * (c₀ * (q + 1))`;
-the number is positive, so nothing is lost by taking `d` in `ℕ`.  The family
-is a sequence `G n` of bipartite multigraphs (Section 3.1 allows parallel
-edges, and the gadget of Lemma 11 may have them), `(c, d)`-biregular counting
-parallel edges, with `|L_n| + |R_n| → ∞`; "unique neighbour expander family"
-is `IsUniqueNeighbourExpanderFamily` (Section 1).  The clause
-"polynomial-time construction" is a statement about a model of computation
-and is not asserted; only the existence of the family is.
-
-This is the target statement of problem P071; its `sorry` is the only one in
-the file. -/
+/-- Theorem 1 of Asherov–Dinur (arXiv:2301.03072), existence form: there is `q̂` such
+that for all `c₀ > 5`, `α > 1` and prime powers `q > q̂(c₀, α)` with `d = α c₀ (q + 1)`
+an integer, there is a `(c₀ (q + 1), d)`-biregular unique-neighbour expander family.
+The paper's polynomial-time construction clause is not formalised. -/
 theorem P071 :
     ∃ qhat : ℕ → ℝ → ℕ, ∀ c₀ : ℕ, 5 < c₀ → ∀ α : ℝ, 1 < α →
       ∀ q : ℕ, IsPrimePow q → qhat c₀ α < q →

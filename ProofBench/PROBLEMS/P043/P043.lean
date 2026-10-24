@@ -1,11 +1,8 @@
 import ProofBench.Mathlib_Problems.Combinatorics.Hypergraph.MultiHypergraph
 
-/- https://arxiv.org/abs/2307.05757 -/
-
 namespace FiniteMultiHypergraph
 
 universe u
-
 
 /-- The asymptotic assertion `t(μ,r) = e·μ·r·(1 + o_{μr}(1))`, along the
 filter sending `(μ, r)` to infinity through the product `μ·r`. -/
@@ -16,11 +13,10 @@ def PaperTheorem24Asymptotic (t : ℝ → ℕ → ℕ) : Prop :=
     (Filter.comap (fun x : ℝ × ℕ => x.1 * (x.2 : ℝ)) Filter.atTop)
     (nhds (0 : ℝ))
 
-/-- **Theorem 2.4** of "Shallow Hitting Edge Sets in Uniform Hypergraphs":
-there is a single threshold function `t(μ, r) = e·μ·r·(1 + o_{μr}(1))` such
-that every `r`-uniform `μ`-near-regular finite multihypergraph has a
-`t(μ, r)`-shallow hitting edge set.  The paper's proof is probabilistic, via
-the Lovász Local Lemma and Stirling's formula. -/
+/-- Theorem 2.4 of Planken–Ueckerdt, arXiv:2307.05757: there is a single
+threshold function `t(μ, r) = e·μ·r·(1 + o_{μr}(1))` such that every
+`r`-uniform `μ`-near-regular finite multihypergraph has a `t(μ, r)`-shallow
+hitting edge set. -/
 theorem P043 :
     ∃ t : ℝ → ℕ → ℕ,
       PaperTheorem24Asymptotic t ∧

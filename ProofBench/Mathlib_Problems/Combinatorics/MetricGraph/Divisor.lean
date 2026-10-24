@@ -57,8 +57,9 @@ end MetricGraph
 /-- An integer divisor with finite support on the points of a metric graph. -/
 abbrev MetricDiv (G : MetricGraph) := G.Point →₀ ℤ
 
-/-- The coefficient of the divisor of a piecewise integral-affine function,
-using the convention `-` the sum of its outgoing slopes. -/
+/-- The order at each point of a piecewise integral-affine function with the
+given one-sided slopes on each edge: minus the sum of its outgoing slopes. The
+sign convention does not affect linear equivalence. -/
 noncomputable def metricOrderCoefficient (G : MetricGraph)
     (rightSlope leftSlope : G.E → ℝ → ℤ) : G.Point → ℤ
   | Sum.inl v =>
@@ -66,9 +67,9 @@ noncomputable def metricOrderCoefficient (G : MetricGraph)
         (if G.rightEnd e = v then leftSlope e (G.length e) else 0))
   | Sum.inr ⟨e, x⟩ => leftSlope e x - rightSlope e x
 
-/-- A rational function on a metric graph: a continuous edgewise function
-which is locally affine with integral one-sided slopes and has only finitely
-many nonzero orders. -/
+/-- A rational function on a metric graph: a continuous edgewise function which
+is locally affine with integral one-sided slopes. Its divisor is required to have
+finite support and degree zero (automatic for such functions). -/
 structure MetricRationalFunction (G : MetricGraph) where
   vertexValue : G.V → ℝ
   edgeValue : G.E → ℝ → ℝ

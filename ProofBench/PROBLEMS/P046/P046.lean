@@ -1,8 +1,6 @@
 import Mathlib.Combinatorics.SimpleGraph.Connectivity.Connected
 import Mathlib.Data.Set.Card
 
-/- Paper: Clustered Variants of Hajós' Conjecture (Liu–Wood). -/
-
 open Function Set
 
 namespace ClusteredHajos
@@ -44,20 +42,16 @@ theorem ClusterColorable.monoClustering
 its endpoints. -/
 abbrev CliqueEdge (n : ℕ) := {e : Fin n × Fin n // e.1 < e.2}
 
-/-- The internal vertices of a list representing a path for the clique edge
-`e`: the endpoint values are excluded even if they occur elsewhere in a
-malformed list; the `Nodup` requirement in `IsCliqueSubdivision` rules such
-lists out. -/
+/-- The internal vertices of the route of the clique edge `e`: its vertices
+other than the two branch vertices joined by `e`. -/
 def routeInterior {n : ℕ} (branch : Fin n → V)
     (route : CliqueEdge n → List V) (e : CliqueEdge n) : Set V :=
   {v | v ∈ route e ∧ v ≠ branch e.1.1 ∧ v ≠ branch e.1.2}
 
-/-- `G` contains a subdivision of `K_n`: `branch` chooses distinct branch
-vertices and, for each edge of `K_n`, `route` chooses a nonempty simple list
-whose consecutive vertices are adjacent in `G` and whose endpoints are the
-corresponding branch vertices; internal route vertices are not branch
-vertices and routes for distinct clique edges are internally disjoint.  This
-is the standard path model of a topological complete graph. -/
+/-- `G` contains a subdivision of `K_n`: distinct branch vertices and, for
+each edge of `K_n`, a path in `G` (a repetition-free vertex list) between the
+two branch vertices; no internal vertex is a branch vertex, and paths of
+distinct clique edges are internally disjoint. -/
 def IsCliqueSubdivision (G : SimpleGraph V) (n : ℕ) : Prop :=
   ∃ branch : Fin n → V, Injective branch ∧
     ∃ route : CliqueEdge n → List V,
@@ -69,10 +63,10 @@ def IsCliqueSubdivision (G : SimpleGraph V) (n : ℕ) : Prop :=
       (∀ e f, e ≠ f →
         Disjoint (routeInterior branch route e) (routeInterior branch route f))
 
-/-- **Liu–Wood, Theorem 6** (clustered Hajós): for every `s`, graphs
-containing no subdivision of `K_(s+1)` are colorable with `max (4s − 5) 1`
-colors and bounded clustering.  Natural-number subtraction is truncated; the
-`max` gives the paper's one-color exceptional case at `s = 1`. -/
+/-- Theorem 6 of Liu–Wood, arXiv:1908.05597 (clustered Hajós): for every `s`
+there is `η` such that every finite graph with no subdivision of `K_(s+1)` is
+colorable with `max (4s − 5) 1` colors and clustering `η`. Subtraction is
+truncated; the `max` keeps one color in the degenerate cases `s ≤ 1`. -/
 theorem P046 (s : ℕ) :
     ∃ η : ℕ, ∀ {V : Type u} [Finite V] (G : SimpleGraph V),
       ¬ IsCliqueSubdivision G (s + 1) →

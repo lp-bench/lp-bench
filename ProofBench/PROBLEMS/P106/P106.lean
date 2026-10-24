@@ -1,97 +1,10 @@
-import ProofBench.PROBLEMS.P105.P105
+import ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.SemiRandomProcess
 import Mathlib.Combinatorics.SimpleGraph.Connectivity.Connected
 import Mathlib.Combinatorics.SimpleGraph.Maps
 import Mathlib.Probability.Distributions.Uniform
 import Mathlib.Data.Real.ENatENNReal
 import Mathlib.Topology.Order.Monotone
 import Mathlib.Topology.Instances.ENNReal.Lemmas
-
-/- ---------------------------------------------------- -/
-/- Paper: On the pre- and post-positional semi-random graph processes -/
-/- ---------------------------------------------------- -/
-
-/-!
-# P049: On the pre- and post-positional semi-random graph processes
-
-This file formalizes the two semi-random graph processes of Section 1.1 and
-the main theorem of
-
-  P. Gao and H. Koerts, *On the pre- and post-positional semi-random graph
-  processes*, arXiv:2309.05881.
-
-## The paper's dependency graph
-
-* Section 1.1 and Section 2: the *post-positional* process (the original
-  process of Ben-Eliezer, Hefetz, Kronenberg, Parczyk, Shikhelman and
-  Stojaković): in round `t` a square `u_t` is chosen uniformly at random and
-  the player answers with a circle `v_t`, which may depend on `u_t`; the
-  *pre-positional* process (proposed by Wormald): the player chooses `v_t`
-  first and `u_t` is then uniform, independent of `v_t`.  Loops and multiple
-  edges may arise; all properties concern the underlying simple graph.
-  A property is *increasing* if it is preserved by adding edges.
-* Section 3, **Lemma 3.1**: the post-positional process constructs a graph in
-  `P` at least as fast as the pre-positional one, by the samplewise coupling
-  in which the post-positional player copies the pre-positional choices.
-* Section 4, `k`-connectivity: `α_1 = 1` (Lemma 4.2) and, for `k ≥ 2`, `α_k`
-  is the constant of Wormald's min-degree process, `α_2 = ln 2 + ln(1 + ln 2)`
-  (Lemma 4.3, Propositions 4.9-4.12, Lemma 4.13) and `α_k` for `k ≥ 3` from
-  Ben-Eliezer et al. (Lemma 4.1).  Section 4.2 introduces the constant
-  `τ_P = lim_{q ↑ 1} limsup_n τ_P(q, n) / n`.
-* **Theorem 1.1**, the main theorem: for every fixed `k ≥ 1` there is a real
-  number `α_k` such that for every `ε > 0`, a.a.s. (a) no strategy in either
-  process constructs a `k`-connected graph in at most `(α_k - ε) n` rounds,
-  and (b) both processes have strategies constructing a `k`-connected graph in
-  at most `(α_k + ε) n` rounds.  It settles the open case `k = 2` of the
-  original process (Remark 1.2).
-* Theorems 1.4 (`d`-degenerate subgraphs, Section 5), 1.6 (dense bipartite
-  subgraphs, Section 6) and 1.8 (induced `(n-1)`-cycles, Section 7) are the
-  other results of the paper.
-
-## What is formalized here
-
-The target of the problem is **Theorem 1.1**, stated at the end of this file as
-`P106` and proved by `sorry`, the single `sorry` of the file.
-Everything else is proved from first principles with no `sorry` and no new
-axiom:
-
-* `History`, `PreStrategy`, `PostStrategy`, `liftPre`, `runPreFrom`,
-  `runPostFrom`, `historyGraph`: histories `(u_1, v_1, …, u_t, v_t)`,
-  deterministic strategies, and the samplewise coupling of Lemma 3.1
-  (`runPostFrom_liftPre_eq_runPreFrom`);
-* `PreRandomStrategy`, `PostRandomStrategy`: randomized strategies, as
-  distributions on the vertex set depending on the history (and, for the
-  post-positional process, on the current square);
-* `stepPost`, `stepPre`, `playLawFrom`, `playLaw`, `successProb`: the laws of
-  the two processes, built round by round, and `P[G_t ∈ P]`;
-* `stepPost_liftPreRandom`, `tau_post_le_pre`: **Lemma 3.1** in law form: the
-  post-positional process playing a pre-positional strategy has exactly the
-  law of the pre-positional process, hence `τ_P^{post} ≤ τ_P^{pre}` for every
-  property `P`;
-* `ProcessFamily`, `tau`: the constant `τ_P` of Section 4.2 for a family of
-  processes, with the bridge lemmas from a.a.s. statements to bounds on `τ_P`;
-* `IsKConnected`, `kConnectedProperty`: `k`-connectivity as defined in
-  Section 4 (connected, and still connected after removing fewer than `k`
-  vertices), an increasing property.
-
-## What is deliberately not asserted
-
-* The constants `α_k` are only characterised through the min-degree process
-  (Remark 1.2(c)); the theorem asserts their existence, as the paper does.
-* Theorems 1.4, 1.6 and 1.8 and Lemmas 4.1-4.3 are not stated, since the file
-  carries a single `sorry`.
-* Nothing about the explicit strategies of Sections 4-7 is encoded.
-
-## Conventions
-
-* Vertex sets are `Fin (n + 1)`, i.e. `[n]` for `n ≥ 1`.  "In at most `T`
-  rounds" is read at round `T`: since `k`-connectivity is increasing, the
-  graph after `⌊T⌋` rounds is `k`-connected iff some earlier graph is.
-* Probabilities live in `ℝ≥0∞` and hitting times in `ℕ∞`, as in Section 4.2.
-* Theorem 1.1(a) is read as "for every sequence of strategies, the probability
-  of success within `(α_k - ε) n` rounds tends to `0`"; Theorem 1.1(b) as the
-  existence of a sequence of strategies whose probability of success within
-  `(α_k + ε) n` rounds tends to `1`.
--/
 
 noncomputable section
 
@@ -102,9 +15,8 @@ open scoped ENNReal NNReal
 
 variable {V : Type*}
 
-/-! ## Histories and deterministic strategies (Section 2, Lemma 3.1) -/
-
-/-- The ordered list of offered/response pairs already played. -/
+/-- The history of a play: the pairs `(u_i, v_i)` of square and circle, in chronological
+order. -/
 abbrev History (V : Type*) := List (V × V)
 
 /-- A deterministic pre-positional strategy cannot inspect the current
@@ -120,6 +32,7 @@ newly offered vertex. -/
 def liftPre (strategy : PreStrategy V) : PostStrategy V :=
   fun history _offered => strategy history
 
+/-- The lifted strategy answers as the original one. -/
 @[simp]
 theorem liftPre_apply (strategy : PreStrategy V) (history : History V)
     (offered : V) :
@@ -171,13 +84,16 @@ theorem historyGraph_runPostFrom_liftPre
       historyGraph (runPreFrom strategy history offers) := by
   rw [runPostFrom_liftPre_eq_runPreFrom]
 
+/-- The empty history gives the empty graph. -/
 theorem historyGraph_nil : historyGraph ([] : History V) = ⊥ :=
   rfl
 
+/-- Prepending a round adds its edge. -/
 theorem historyGraph_cons (u v : V) (history : History V) :
     historyGraph ((u, v) :: history) = addEdge (historyGraph history) u v :=
   rfl
 
+/-- The graph of a concatenation is the union of the graphs. -/
 theorem historyGraph_append (h₁ h₂ : History V) :
     historyGraph (h₁ ++ h₂) = historyGraph h₁ ⊔ historyGraph h₂ := by
   induction h₁ with
@@ -192,8 +108,6 @@ theorem historyGraph_le_append (h₁ h₂ : History V) :
     historyGraph h₁ ≤ historyGraph (h₁ ++ h₂) := by
   rw [historyGraph_append]
   exact le_sup_left
-
-/-! ## Randomized strategies -/
 
 /-- A randomized pre-positional strategy: the distribution of the circle `v_t`, which may
 depend on the history but not on the square `u_t`, drawn afterwards. -/
@@ -215,11 +129,10 @@ def PostStrategy.toRandom (strategy : PostStrategy V) : PostRandomStrategy V :=
 def liftPreRandom (strategy : PreRandomStrategy V) : PostRandomStrategy V :=
   fun history _offered => strategy history
 
+/-- Copying commutes with passing from deterministic to randomized strategies. -/
 theorem liftPreRandom_toRandom (strategy : PreStrategy V) :
     liftPreRandom strategy.toRandom = (liftPre strategy).toRandom :=
   rfl
-
-/-! ## The laws of the two processes -/
 
 /-- A one-round kernel which appends exactly one pair to the history. -/
 def IsAppendStep (step : History V → PMF (History V)) : Prop :=
@@ -250,12 +163,14 @@ theorem stepPost_liftPreRandom (S : PreRandomStrategy V) :
   exact PMF.bind_comm (PMF.uniformOfFintype V) (S history)
     fun offered response => PMF.pure (history ++ [(offered, response)])
 
+/-- A post-positional round appends one pair. -/
 theorem isAppendStep_stepPost (S : PostRandomStrategy V) : IsAppendStep (stepPost S) := by
   intro history h hh
   simp only [stepPost, PMF.mem_support_bind_iff, PMF.mem_support_pure_iff] at hh
   obtain ⟨u, -, v, -, rfl⟩ := hh
   exact ⟨u, v, rfl⟩
 
+/-- A pre-positional round appends one pair. -/
 theorem isAppendStep_stepPre (S : PreRandomStrategy V) : IsAppendStep (stepPre S) := by
   intro history h hh
   simp only [stepPre, PMF.mem_support_bind_iff, PMF.mem_support_pure_iff] at hh
@@ -278,9 +193,11 @@ def playLawFrom (h₀ : History V) : ℕ → PMF (History V)
 def playLaw (t : ℕ) : PMF (History V) :=
   playLawFrom step [] t
 
+/-- After `0` rounds the history is `h₀`. -/
 theorem playLawFrom_zero (h₀ : History V) : playLawFrom step h₀ 0 = PMF.pure h₀ :=
   rfl
 
+/-- Round `t + 1` is one more step after round `t`. -/
 theorem playLawFrom_succ (h₀ : History V) (t : ℕ) :
     playLawFrom step h₀ (t + 1) = (playLawFrom step h₀ t).bind step :=
   rfl
@@ -299,6 +216,7 @@ theorem playLawFrom_add (h₀ : History V) (t₁ t₂ : ℕ) :
         _ = (playLawFrom step h₀ t₁).bind fun h => playLawFrom step h (t + 1) :=
             PMF.bind_bind _ _ _
 
+/-- After `t` rounds the history has grown by exactly `t` pairs. -/
 theorem length_of_mem_support_playLawFrom (hstep : IsAppendStep step) (h₀ : History V) :
     ∀ (t : ℕ) (h : History V), h ∈ (playLawFrom step h₀ t).support → h.length = h₀.length + t
   | 0, h, hh => by
@@ -313,8 +231,6 @@ theorem length_of_mem_support_playLawFrom (hstep : IsAppendStep step) (h₀ : Hi
         length_of_mem_support_playLawFrom hstep h₀ t h' hh']
       omega
 
-/-! ### Success probabilities and hitting times (Section 4.2) -/
-
 /-- `P[G_t ∈ P]` for the process started from `h₀`. -/
 def successProbFrom (h₀ : History V) (P : SimpleGraph V → Prop) (t : ℕ) : ℝ≥0∞ :=
   (playLawFrom step h₀ t).toOuterMeasure {h | P (historyGraph h)}
@@ -323,6 +239,7 @@ def successProbFrom (h₀ : History V) (P : SimpleGraph V → Prop) (t : ℕ) : 
 def successProb (P : SimpleGraph V → Prop) (t : ℕ) : ℝ≥0∞ :=
   successProbFrom step [] P t
 
+/-- Success probabilities are at most `1`. -/
 theorem successProbFrom_le_one (h₀ : History V) (P : SimpleGraph V → Prop) (t : ℕ) :
     successProbFrom step h₀ P t ≤ 1 := by
   unfold successProbFrom
@@ -331,6 +248,7 @@ theorem successProbFrom_le_one (h₀ : History V) (P : SimpleGraph V → Prop) (
         (playLawFrom step h₀ t).toOuterMeasure_mono fun x _ => Set.mem_univ x
     _ = 1 := (PMF.toOuterMeasure_apply_eq_one_iff _ _).mpr (Set.subset_univ _)
 
+/-- Success probabilities are at most `1`. -/
 theorem successProb_le_one (P : SimpleGraph V → Prop) (t : ℕ) : successProb step P t ≤ 1 :=
   successProbFrom_le_one step [] P t
 
@@ -360,32 +278,34 @@ theorem successProbFrom_le_succ (hstep : IsAppendStep step) (h₀ : History V)
   · rw [Set.indicator_of_notMem hh]
     exact zero_le
 
+/-- For an increasing property, `P[G_t ∈ P]` is non-decreasing in `t`. -/
 theorem successProb_mono (hstep : IsAppendStep step) {P : SimpleGraph V → Prop}
     (hP : IncreasingProperty P) : Monotone (successProb step P) :=
   monotone_nat_of_le_succ (successProbFrom_le_succ step hstep [] hP)
 
-/-- `τ_P(S, q, n)`: the least round `t` with `P[G_t ∈ P] ≥ q`, and `∞` if there is none. -/
+/-- `τ_P(S, q, n)`: the least round `t` with `P[G_t ∈ P] ≥ q`, and `⊤` if there is none. -/
 def hittingTime (P : SimpleGraph V → Prop) (q : ℝ≥0∞) : ℕ∞ :=
   ⨅ (t : ℕ) (_ : q ≤ successProb step P t), (t : ℕ∞)
 
+/-- A round reaching probability `q` bounds the hitting time from above. -/
 theorem hittingTime_le {P : SimpleGraph V → Prop} {q : ℝ≥0∞} {t : ℕ}
     (h : q ≤ successProb step P t) : hittingTime step P q ≤ t := by
   unfold hittingTime
   exact iInf₂_le t h
 
+/-- A lower bound on every round reaching probability `q` bounds the hitting time. -/
 theorem le_hittingTime {P : SimpleGraph V → Prop} {q : ℝ≥0∞} {m : ℕ}
     (h : ∀ t : ℕ, q ≤ successProb step P t → m ≤ t) : (m : ℕ∞) ≤ hittingTime step P q := by
   unfold hittingTime
   exact le_iInf₂ fun t ht => ENat.coe_le_coe.mpr (h t ht)
 
+/-- `τ_P(S, q, n)` is non-decreasing in `q`. -/
 theorem hittingTime_mono (P : SimpleGraph V → Prop) : Monotone (hittingTime step P) := by
   intro q₁ q₂ hq
   unfold hittingTime
   exact iInf_mono fun _ => iInf_mono' fun h => ⟨hq.trans h, le_rfl⟩
 
 end Process
-
-/-! ## The constant `τ_P` of Section 4.2 for a family of processes -/
 
 /-- A semi-random process on every vertex set `[n]`, `n ≥ 1`: a type of strategies and the
 one-round kernel of each strategy. -/
@@ -403,36 +323,41 @@ variable (F : ProcessFamily)
 def minHittingTime (n : ℕ) (P : SimpleGraph (Fin (n + 1)) → Prop) (q : ℝ≥0∞) : ℕ∞ :=
   ⨅ S : F.Strat n, hittingTime (F.step n S) P q
 
+/-- `τ_P(q, n) ≤ τ_P(S, q, n)` for every strategy `S`. -/
 theorem minHittingTime_le (n : ℕ) (P : SimpleGraph (Fin (n + 1)) → Prop) (q : ℝ≥0∞)
     (S : F.Strat n) : F.minHittingTime n P q ≤ hittingTime (F.step n S) P q :=
   iInf_le _ S
 
+/-- A lower bound for every strategy is a lower bound for `τ_P(q, n)`. -/
 theorem le_minHittingTime {n : ℕ} {P : SimpleGraph (Fin (n + 1)) → Prop} {q : ℝ≥0∞}
     {m : ℕ∞} (h : ∀ S : F.Strat n, m ≤ hittingTime (F.step n S) P q) :
     m ≤ F.minHittingTime n P q :=
   le_iInf h
 
+/-- `τ_P(q, n)` is non-decreasing in `q`. -/
 theorem minHittingTime_mono (n : ℕ) (P : SimpleGraph (Fin (n + 1)) → Prop) :
     Monotone (F.minHittingTime n P) :=
   fun _ _ hq => iInf_mono fun S => hittingTime_mono (F.step n S) P hq
 
-/-- `limsup_{n → ∞} τ_P(q, n) / n` (the index `n` below is the paper's `n - 1`). -/
+/-- `limsup_{n → ∞} τ_P(q, n) / n` over the vertex sets `[n]`, `n ≥ 1` (the index `n` below is
+the paper's `n - 1`); the quotient is `⊤` when `τ_P(q, n) = ⊤`. -/
 def tauAt (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) (q : ℝ≥0∞) : ℝ≥0∞ :=
   limsup (fun n : ℕ =>
     ((F.minHittingTime n (P (n + 1)) q : ℕ∞) : ℝ≥0∞) / ((n + 1 : ℕ) : ℝ≥0∞)) atTop
 
-/-- `τ_P = lim_{q ↑ 1} limsup_n τ_P(q, n) / n` of Section 4.2, as the supremum over
-`0 < q < 1` of the non-decreasing function `q ↦ limsup_n τ_P(q, n) / n`;
-`tendsto_tauAt` confirms that this is the paper's limit. -/
+/-- `τ_P = lim_{q ↑ 1} limsup_n τ_P(q, n) / n` of Section 4.2, written as the supremum over
+`0 < q < 1`; the function of `q` is non-decreasing, so this is the left limit (`tendsto_tauAt`). -/
 def tau (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) : ℝ≥0∞ :=
   ⨆ q ∈ Set.Ioo (0 : ℝ≥0∞) 1, F.tauAt P q
 
+/-- `limsup_n τ_P(q, n) / n` is non-decreasing in `q`. -/
 theorem tauAt_mono (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) : Monotone (F.tauAt P) := by
   intro q₁ q₂ hq
   unfold tauAt
   refine limsup_le_limsup (Eventually.of_forall fun n => ?_)
   exact ENNReal.div_le_div_right (ENat.toENNReal_mono (F.minHittingTime_mono _ _ hq)) _
 
+/-- `τ_P` bounds `limsup_n τ_P(q, n) / n` for every `0 < q < 1`. -/
 theorem tauAt_le_tau (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) {q : ℝ≥0∞}
     (hq : q ∈ Set.Ioo (0 : ℝ≥0∞) 1) : F.tauAt P q ≤ F.tau P := by
   unfold tau
@@ -564,8 +489,6 @@ theorem le_tau_of_forall_eventually_of_increasing
 
 end ProcessFamily
 
-/-! ## The two processes as families, and Lemma 3.1 -/
-
 /-- The post-positional process: the original semi-random graph process. -/
 def postPositional : ProcessFamily where
   Strat n := PostRandomStrategy (Fin (n + 1))
@@ -576,18 +499,22 @@ def prePositional : ProcessFamily where
   Strat n := PreRandomStrategy (Fin (n + 1))
   step _ S := stepPre S
 
+/-- The kernel of the post-positional family. -/
 theorem postPositional_step (n : ℕ) (S : PostRandomStrategy (Fin (n + 1))) :
     postPositional.step n S = stepPost S :=
   rfl
 
+/-- The kernel of the pre-positional family. -/
 theorem prePositional_step (n : ℕ) (S : PreRandomStrategy (Fin (n + 1))) :
     prePositional.step n S = stepPre S :=
   rfl
 
+/-- Post-positional rounds append one pair. -/
 theorem postPositional_isAppendStep (n : ℕ) (S : postPositional.Strat n) :
     IsAppendStep (postPositional.step n S) :=
   isAppendStep_stepPost S
 
+/-- Pre-positional rounds append one pair. -/
 theorem prePositional_isAppendStep (n : ℕ) (S : prePositional.Strat n) :
     IsAppendStep (prePositional.step n S) :=
   isAppendStep_stepPre S
@@ -610,11 +537,9 @@ theorem tau_post_le_pre (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) :
   refine limsup_le_limsup (Eventually.of_forall fun n => ?_)
   exact ENNReal.div_le_div_right (ENat.toENNReal_mono (minHittingTime_post_le_pre n _ q)) _
 
-/-! ## `k`-connectivity (Section 4) -/
-
-/-- Section 4: a connected graph is `k`-connected if it remains connected when removing fewer
-than `k` vertices.  (For `n → ∞` and fixed `k` this agrees with the usual convention, which
-also requires more than `k` vertices.) -/
+/-- `k`-connectivity as in Section 4: connected, and still connected after removing any fewer
+than `k` vertices.  For fixed `k` and large `n` this agrees with the usual convention, which
+also asks for more than `k` vertices. -/
 def IsKConnected (k : ℕ) (G : SimpleGraph V) : Prop :=
   G.Connected ∧ ∀ s : Finset V, s.card < k → (G.induce ((s : Set V)ᶜ)).Connected
 
@@ -623,6 +548,7 @@ theorem IsKConnected.mono {k : ℕ} {G H : SimpleGraph V} (hGH : G ≤ H)
     (hG : IsKConnected k G) : IsKConnected k H :=
   ⟨hG.1.mono hGH, fun s hs => (hG.2 s hs).mono (SimpleGraph.comap_monotone _ hGH)⟩
 
+/-- `k`-connectivity is an increasing property. -/
 theorem isKConnected_increasing (k : ℕ) :
     IncreasingProperty (IsKConnected k : SimpleGraph V → Prop) :=
   fun _ _ hGH hG => hG.mono hGH
@@ -631,18 +557,15 @@ theorem isKConnected_increasing (k : ℕ) :
 def kConnectedProperty (k : ℕ) : ∀ n : ℕ, SimpleGraph (Fin n) → Prop :=
   fun _ G => IsKConnected k G
 
+/-- `C_k` is an increasing property. -/
 theorem kConnectedProperty_increasing (k n : ℕ) :
     IncreasingProperty (kConnectedProperty k n) :=
   isKConnected_increasing k
 
-/-! ## The main theorem -/
-
-/-- **Theorem 1.1** (Gao, Koerts).  For every fixed `k ≥ 1` there is a real number `α_k` such
-that for every `ε > 0`: (a) no strategy in the post-positional or in the pre-positional process
-constructs a `k`-connected graph in at most `(α_k - ε) n` rounds, a.a.s.; (b) there are
-strategies in both processes constructing a `k`-connected graph in at most `(α_k + ε) n`
-rounds, a.a.s.  Here `α_1 = 1` and, for `k ≥ 2`, `α_k` is the constant of Wormald's min-degree
-process (Remark 1.2(c)). -/
+/-- Theorem 1.1 of Gao–Koerts, arXiv:2309.05881: for every `k ≥ 1` there is `α_k` such that, for
+every `ε > 0` and in each of the two processes, the probability of a `k`-connected graph after
+`⌊(α_k - ε) n⌋` rounds tends to `0` for every sequence of strategies, and the probability after
+`⌊(α_k + ε) n⌋` rounds tends to `1` for some sequence of strategies. -/
 theorem P106 (k : ℕ) (hk : 1 ≤ k) :
     ∃ α : ℝ, ∀ ε : ℝ, 0 < ε →
       (∀ S : ∀ n : ℕ, PostRandomStrategy (Fin (n + 1)),
@@ -658,8 +581,6 @@ theorem P106 (k : ℕ) (hk : 1 ≤ k) :
         Tendsto (fun n : ℕ => successProb (stepPre (S n)) (kConnectedProperty k (n + 1))
           ⌊(α + ε) * ((n + 1 : ℕ) : ℝ)⌋₊) atTop (𝓝 1)) := by
   sorry
-
-/-! ## Direct corollaries -/
 
 /-- Theorem 1.1 restricted to the pre-positional process: it has a sharp linear threshold for
 `k`-connectivity. -/

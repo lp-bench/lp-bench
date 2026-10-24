@@ -3,7 +3,7 @@ import Mathlib.Data.Nat.Choose.Basic
 
 open SimpleGraph
 
-/-- Erdős–Szekeres: `choose(r+s-2,r-1)` vertices force an `r`-clique
+/-- Erdős–Szekeres 1935: `choose(r+s-2,r-1)` vertices force an `r`-clique
 or an independent set of size `s`. -/
 theorem P088 {V : Type*} [Fintype V] (G : SimpleGraph V)
     (r s : ℕ) (hr : 1 ≤ r) (hs : 1 ≤ s)

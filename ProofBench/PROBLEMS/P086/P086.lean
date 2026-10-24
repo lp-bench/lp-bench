@@ -6,8 +6,9 @@ import Mathlib.Combinatorics.SimpleGraph.Coloring.Vertex
 open SimpleGraph Function
 
 /-- Every properly edge-coloured nonempty finite subgraph `G` of a hypercube
-contains a rainbow copy of every tree with at most `δ(G)` edges.
-Copies preserve edges, but need not preserve nonedges. -/
+contains a rainbow copy of every tree with at most `δ(G)` edges (Theorem 1.2 of
+Crawford–Sankar–Schildkraut–Spiro, arXiv:2508.14186). Copies preserve edges, but
+need not preserve nonedges. -/
 theorem P086 {V W C : Type*} [Fintype V] [Nonempty V] [Fintype W]
     (n : ℕ) (G : SimpleGraph V) [DecidableRel G.Adj]
     (ι : G →g H n) (hι : Injective ι) (c : G.lineGraph.Coloring C)

@@ -1,28 +1,18 @@
-import ProofBench.PROBLEMS.P020.P020
-
-/- ==============================================================================
-P017 — Tutte's Wheel Theorem, contraction-sequence characterization.
-
-The connectivity notion (`IsThreeConnected`, i.e. the shared library
-`SimpleGraph.IsVertexConnected 3`) and the edge-contraction machinery
-(`contractionRelation`, `contractionSetoid`, `ContractedV`,
-`SimpleGraph.contractEdge`) are imported from `P020.lean`, so the two Tutte
-formalizations share one set of definitions.
-============================================================================== -/
+import ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.Contraction
 
 open SimpleGraph
 
 universe u
 
-/-- A valid Tutte edge: both endpoints have degree ≥ 3. -/
+/-- A valid Tutte edge of `G`: an edge both of whose endpoints have degree at least `3`. -/
 structure ValidTutteContraction {V : Type*} [Fintype V] [DecidableEq V]
     (G : SimpleGraph V) [DecidableRel G.Adj] where
   edge : Sym2 V
   h_edge : edge ∈ G.edgeSet
   h_deg : ∀ v ∈ edge, G.degree v ≥ 3
 
-/- Properly universe-polymorphic so that the base case `K₄` (which lives in
-`Type 0`) and an arbitrary graph `G` (which lives in `Type u`) can coexist. -/
+/-- `G` has a Tutte sequence: `G` is isomorphic to `K₄`, or contracting some valid Tutte edge of
+`G` gives a graph isomorphic to one with a Tutte sequence. -/
 inductive HasTutteSequence : {V : Type u} → [Fintype V] → [DecidableEq V] →
     (G : SimpleGraph V) → [DecidableRel G.Adj] → Prop
   | base {V : Type u} [Fintype V] [DecidableEq V] (G : SimpleGraph V)
@@ -39,8 +29,9 @@ inductive HasTutteSequence : {V : Type u} → [Fintype V] → [DecidableEq V] �
 variable {V : Type u} [Fintype V] [DecidableEq V]
 variable (G : SimpleGraph V) [DecidableRel G.Adj]
 
-/- Tutte (1961): A graph G is 3-connected iff there exists a sequence
-    G₀=K₄, G₁,…,Gₙ=G such that each Gᵢ = Gᵢ₊₁/xy with d(x), d(y) ≥ 3. -/
+/-- Tutte's characterisation of 3-connected graphs (Tutte 1961): `G` is 3-connected iff there is
+a sequence `G₀ = K₄, G₁, …, Gₙ = G` with each `Gᵢ = Gᵢ₊₁ / xy` for an edge `xy` of `Gᵢ₊₁` whose
+endpoints have degree at least `3`. -/
 theorem P017 :
     IsThreeConnected G ↔ HasTutteSequence G := by
   constructor

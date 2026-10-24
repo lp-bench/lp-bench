@@ -3,8 +3,9 @@ import Mathlib.Combinatorics.SimpleGraph.Coloring.Vertex
 
 open Multigraph
 
-/-- Galvin's theorem: a finite loopless bipartite multigraph of maximum
-degree at most `d` can be edge-coloured from any lists of at least `d` colours. -/
+/-- Galvin's theorem (Galvin 1995, J. Combin. Theory Ser. B 63): a finite loopless
+bipartite multigraph of maximum degree at most `d` can be edge-coloured from any
+lists of at least `d` colours. -/
 theorem P087 {V E C : Type*} [Finite V] [Fintype E]
     [DecidableEq V] (d : ℕ) (M : Multigraph V E)
     (hloop : ∀ e, ¬M.IsLoop e) (hbi : M.toSimpleGraph.Colorable 2)

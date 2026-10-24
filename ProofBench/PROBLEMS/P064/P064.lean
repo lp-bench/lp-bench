@@ -4,12 +4,9 @@ open Multigraph
 
 universe u v
 
-/-- **The Berge–Fulkerson conjecture** (Fulkerson 1971): every bridgeless
-cubic multigraph has six perfect matchings that together cover every edge
-exactly twice.  Equivalently, the graph obtained by doubling every edge is
-`6`-edge-colourable.  For `3`-edge-colourable cubic graphs the six
-matchings are the three colour classes taken twice, so any counterexample
-is a snark. -/
+/-- **The Berge–Fulkerson conjecture** (Fulkerson 1971): every bridgeless cubic
+multigraph (loopless and `3`-regular) has six perfect matchings that together
+cover every edge exactly twice. -/
 theorem P064 :
     ∀ (V : Type u) (E : Type v) [Fintype E] [DecidableEq V] [DecidableEq E]
       (M : Multigraph V E),

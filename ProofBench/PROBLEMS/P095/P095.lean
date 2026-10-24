@@ -4,69 +4,15 @@ import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.Data.Fintype.BigOperators
 import Mathlib.Tactic
 
-/-!
-# P095: Explicit two-sided unique-neighbor expanders
-
-This file formalizes part of
-
-  J.-T. Hsieh, T. McKenzie, S. Mohanty and P. Paredes,
-  *Explicit two-sided unique-neighbor expanders*, arXiv:2302.01212.
-
-The paper's dependency graph for its main theorems is:
-
-* Definition 1.1: two-sided (algebraic) unique-neighbour expanders;
-* Lemma 2.1: the expander mixing lemma bound `e(S) <= D|S|(eps + delta)/2`;
-* **Lemma 2.2**: in a graph of hereditarily bounded average degree, a constant
-  fraction of the edges is incident to low-degree vertices;
-* Fact 2.3 (Ihara-Bass) and Lemma 2.4: the spectral radius of the
-  non-backtracking matrix versus positive definiteness of the Bethe Hessian;
-* Definition 3.1: the *line product* `G (x) H`, and Definition 3.2, the
-  unique-neighbour expansion profile `P_H`;
-* Lemma 3.3: the expansion profile of the line product, whose proof combines
-  Definition 3.1, Definition 3.2 and Lemma 2.2;
-* Theorem 1.2 (Section 4), Theorem 1.8 (Section 5), Theorem 1.11 (Section 6),
-  Theorem 1.12 (Appendix A) and Theorem 1.5 (Section 7).
-
-The target of the problem is the paper's main theorem -- **Theorem 4.4**, the
-formal version of Theorem 1.2 -- stated at the end of this file as
-`twoSided_uniqueNeighbour_expanders_exist` and proved by `sorry`, the single
-`sorry` of the file: for every `beta` in `(0, 1/2]` there are `d0, delta > 0`
-such that for all even `d1, d2 >= d0` with `1 >= d1/d2 >= beta/(1-beta)`
-there is an infinite family of `(2 d1, 2 d2)`-biregular bipartite graphs in
-which every vertex set `S` with `|S| <= |V|/d1^3` has at least
-`delta * d1 * |S|` unique neighbours.
-
-Everything else below is proved from first principles with no `sorry` and no
-new axioms.  The results formalized in full are
-
-* `pairs`, the ordered-pair edge count, together with its double-counting,
-  symmetry and additivity lemmas;
-* `two_mul_edges_le_three_mul_sum_lowDegree`, which is **Lemma 2.2**;
-* `lineProductNbr` (Definition 3.1) and `nbhd_lineProduct`, the decomposition of
-  neighbourhoods in the line product into the gadget copies `H(v)`, which is the
-  first step in the proof of Lemma 3.3;
-* `HasExpansionProfileAtLeast` (Definition 3.2) and
-  `TwoSidedUniqueNeighbourExpander` (Definition 1.1).
-
-The spectral half of the paper (Lemma 2.1, Fact 2.3, Lemma 2.4, Theorems 1.8,
-1.11 and 1.12) is not asserted here, and neither is Lemma 3.3, whose proof needs
-those inputs in addition to Lemma 2.2.
--/
-
 namespace TwoSidedUniqueNeighbour
 
 open Finset
 
-/-! ## Ordered-pair edge counts
-
-`pairs F s t` is the number of ordered pairs `(u, v)` of `s x t` joined by an
-edge.  For `s = t` this is `2 e(s)`, and for disjoint `s` and `t` it is the
-paper's `e(s, t)`. -/
-
 variable {V : Type*} [Fintype V] [DecidableEq V]
 variable (F : SimpleGraph V) [DecidableRel F.Adj]
 
-/-- The number of ordered adjacent pairs in `s x t`. -/
+/-- The number of ordered adjacent pairs in `s × t`: `2 e(s)` for `s = t`, and the
+paper's `e(s, t)` for disjoint `s` and `t`. -/
 def pairs (s t : Finset V) : ℕ :=
   ((s ×ˢ t).filter fun p => F.Adj p.1 p.2).card
 
@@ -119,8 +65,6 @@ theorem pairs_univ_eq_sum_degree (s : Finset V) :
   ext v
   simp [SimpleGraph.mem_neighborFinset]
 
-/-! ## Lemma 2.2: most edges touch a low-degree vertex -/
-
 /-- The vertices of degree at most `2 * gamma`. -/
 noncomputable def lowDegree (gamma : ℝ) : Finset V :=
   Finset.univ.filter fun v => (F.degree v : ℝ) ≤ 2 * gamma
@@ -130,26 +74,26 @@ noncomputable def highDegree (gamma : ℝ) : Finset V :=
   Finset.univ.filter fun v => ¬ ((F.degree v : ℝ) ≤ 2 * gamma)
 
 omit [DecidableEq V] in
+/-- Low- and high-degree vertices are disjoint. -/
 theorem disjoint_lowDegree_highDegree (gamma : ℝ) :
     Disjoint (lowDegree F gamma) (highDegree F gamma) :=
   Finset.disjoint_filter_filter_not _ _ _
 
+/-- Every vertex has low or high degree. -/
 theorem lowDegree_union_highDegree (gamma : ℝ) :
     lowDegree F gamma ∪ highDegree F gamma = Finset.univ :=
   Finset.filter_union_filter_not_eq _ _
 
 omit [DecidableEq V] in
+/-- A high-degree vertex has degree more than `2 * gamma`. -/
 theorem two_mul_gamma_lt_degree_of_mem_highDegree {gamma : ℝ} {v : V}
     (hv : v ∈ highDegree F gamma) : 2 * gamma < (F.degree v : ℝ) :=
   not_le.mp (Finset.mem_filter.mp hv).2
 
 omit [DecidableEq V] in
-/-- **Lemma 2.2.**  Let `F` be a graph in which every induced subgraph has
-average degree at most `gamma`, that is `2 e(S) <= gamma |S|` for every set `S`
-of vertices.  Split the vertices into those of degree at most `2 gamma` and the
-rest.  Then at least a third of the ordered edge pairs is accounted for by the
-degrees of the low-degree vertices:
-`2 e(F) <= 3 * (sum of deg(v) over the low-degree vertices)`. -/
+/-- Lemma 2.2 of the paper: if `2 e(S) ≤ gamma |S|` for every vertex set `S`, then
+`2 e(F)` is at most three times the sum of the degrees of the vertices of degree at
+most `2 gamma`. -/
 theorem two_mul_edges_le_three_mul_sum_lowDegree (gamma : ℝ)
     (hgamma : ∀ s : Finset V, (pairs F s s : ℝ) ≤ gamma * s.card) :
     pairs F Finset.univ Finset.univ
@@ -204,17 +148,11 @@ theorem two_mul_edges_le_three_mul_sum_lowDegree (gamma : ℝ)
     exact_mod_cast h4
   omega
 
-/-! ## The line product (Definition 3.1)
-
-`G` is a `D`-regular base graph; for a vertex `v` of `G` and an index `i` in
-`[D]`, `inc v i` is the `i`-th edge incident to `v`.  The gadget `H` is a graph
-on `[D]`.  The line product `G (x) H` has vertex set `E(G)` and, for every
-vertex `v` of `G`, a copy `H(v)` of `H` placed on the edges incident to `v`. -/
-
 variable {W E : Type*} [Fintype W] [Fintype E] [DecidableEq E]
 
-/-- The neighbourhood function of the line product `G (x) H` of
-Definition 3.1. -/
+/-- The neighbourhood function of the line product `G ⊗ H` (Definition 3.1) of a
+`D`-regular graph `G` with a gadget `H` on `[D]`: the vertices are the edges of `G`,
+`inc v i` is the `i`-th edge at `v`, and a copy of `H` sits on the edges at each `v`. -/
 def lineProductNbr {D : ℕ} (inc : W → Fin D → E) (H : SimpleGraph (Fin D))
     [DecidableRel H.Adj] (a : E) : Finset E :=
   Finset.univ.filter fun b : E =>
@@ -253,17 +191,15 @@ theorem nbhd_lineProduct {D : ℕ} (inc : W → Fin D → E) (H : SimpleGraph (F
   · rintro ⟨v, j, ⟨i, hiT, hij⟩, hincb⟩
     exact ⟨inc v i, hiT, v, i, j, hij, rfl, hincb⟩
 
-/-! ## Unique-neighbour expansion (Definitions 1.1 and 3.2) -/
-
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
 /-- `UN(S)`, the unique neighbours of `S` for a graph presented by a
-neighbourhood function. -/
+neighbourhood function: the vertices with exactly one neighbour in `S`. -/
 def uniqueNeighbours {β : Type*} [Fintype β] [DecidableEq β] (nbr : α → Finset β)
     (S : Finset α) : Finset β :=
   Finset.univ.filter fun v => (S.filter fun u => v ∈ nbr u).card = 1
 
-/-- **Definition 3.2.**  The statement `P_H(t) >= c` for the unique-neighbour
+/-- Definition 3.2: the statement `P_H(t) >= c` for the unique-neighbour
 expansion profile: every nonempty set of at most `t` vertices has at least
 `c |S|` unique neighbours. -/
 def HasExpansionProfileAtLeast {β : Type*} [Fintype β] [DecidableEq β]
@@ -280,11 +216,9 @@ theorem HasExpansionProfileAtLeast.mono {β : Type*} [Fintype β] [DecidableEq �
     HasExpansionProfileAtLeast nbr t' c :=
   fun S hne hcard => h S hne (hcard.trans htt)
 
-/-- **Definition 1.1.**  A `(d1, d2)`-biregular graph, presented by the two
-neighbourhood functions of its sides, is a `delta`-two-sided unique-neighbour
-expander with expansion factor `alpha` when both sides expand: every left set of
-density below `delta` has at least `alpha d1 |S|` neighbours, and symmetrically
-on the right. -/
+/-- Definition 1.1 (as encoded here): a bipartite graph, given by the neighbourhood
+functions of its sides, in which every left set of density below `delta` has at
+least `alpha d1 |S|` neighbours, and symmetrically on the right with `d2`. -/
 def TwoSidedUniqueNeighbourExpander {L R : Type*} [Fintype L] [Fintype R]
     [DecidableEq L] [DecidableEq R] (nbrL : L → Finset R) (nbrR : R → Finset L)
     (d1 d2 : ℕ) (alpha delta : ℝ) : Prop :=
@@ -293,34 +227,14 @@ def TwoSidedUniqueNeighbourExpander {L R : Type*} [Fintype L] [Fintype R]
     (∀ S : Finset R, (S.card : ℝ) < delta * (Fintype.card R : ℝ) →
       alpha * (d2 * S.card) ≤ ((nbhd nbrR S).card : ℝ))
 
-/-! ## Theorem 4.4: the main theorem -/
-
 end TwoSidedUniqueNeighbour
 
 open TwoSidedUniqueNeighbour in
 open scoped Classical in
-/-- **Theorem 4.4, the formal version of Theorem 1.2** -- the main theorem of
-the paper.  For every `beta` in `(0, 1/2]` there are `d0 = d0(beta) > 0` and
-`delta = delta(beta) > 0` such that for all even `d1, d2 >= d0` with
-`1 >= d1/d2 >= beta/(1-beta)`, there is an infinite family of
-`(2 d1, 2 d2)`-biregular bipartite graphs -- graphs on arbitrarily many
-vertices below -- in which every vertex set `S` with
-`|S| <= |V(Z)| / d1 ^ 3` has at least `delta * d1 * |S|` unique neighbours;
-in the language of Definition 3.2, `P_Z(|V(Z)| / d1 ^ 3) >= delta * d1`.
-
-Encoding notes.  The aspect-ratio window `1 >= d1/d2 >= beta/(1-beta)` is
-written multiplicatively as `d1 <= d2` and `beta * d2 <= (1 - beta) * d1`
-(sound since `1 - beta >= 1/2 > 0`).  The threshold `N / d1 ^ 3` uses
-natural-number division, which agrees with the paper's
-`|S| <= |V(Z_n)| / d1^3` because `|S|` is an integer.  The bipartition is
-recorded by `side`, with the `2 d1`-regular side on `true`; every edge
-crosses sides.  The paper's *strong explicitness* of the family and the
-Cayley group action of Theorem 1.2 (the "algebraic" refinement) are
-properties of the construction that the paper's own formal statement,
-Theorem 4.4, does not assert, and they are likewise not asserted here.
-
-This is the target statement of problem P095; its `sorry` is the only one in
-the file. -/
+/-- Theorem 4.4 (formal version of Theorem 1.2) of Hsieh–McKenzie–Mohanty–Paredes,
+arXiv:2302.01212: for `β ∈ (0, 1/2]` there are `d₀, δ > 0` such that for even `d₁, d₂ ≥ d₀`
+with `β/(1-β) ≤ d₁/d₂ ≤ 1` there are arbitrarily large `(2d₁, 2d₂)`-biregular bipartite
+graphs whose vertex sets `S` of size at most `N / d₁³` have `≥ δ d₁ |S|` unique neighbours. -/
 theorem P095 {β : ℝ} (hβ0 : 0 < β)
     (hβ1 : β ≤ 1 / 2) :
     ∃ d₀ : ℕ, 0 < d₀ ∧ ∃ δ : ℝ, 0 < δ ∧

@@ -11,6 +11,7 @@ edges of `G`; two distinct edges are adjacent iff they share an endpoint). -/
 noncomputable def edgeChromaticNumber (G : SimpleGraph V) : ℕ∞ :=
   G.lineGraph.chromaticNumber
 
-/-- **Vizing's theorem** (1964) -/
+/-- **Vizing's theorem** (Vizing 1964; Diestel, *Graph Theory*, Theorem 5.3.2): every
+finite simple graph has edge chromatic number at most its maximum degree plus one. -/
 theorem P011 [Fintype V] (G : SimpleGraph V) [DecidableRel G.Adj] :
     edgeChromaticNumber G ≤ G.maxDegree + 1 := sorry

@@ -1,7 +1,7 @@
 import Mathlib.Data.Fintype.Card
 import Mathlib.Data.Nat.Choose.Basic
 
-/-- Bollobás: disjoint pairs of r- and s-element sets that intersect across
+/-- Bollobás 1965: disjoint pairs of r- and s-element sets that intersect across
 every pair of distinct indices number at most `choose (r + s) r`. -/
 theorem P091 {ι α : Type*} [Fintype ι] (r s : ℕ) (A B : ι → Finset α)
     (hA : ∀ i, (A i).card = r) (hB : ∀ i, (B i).card = s)

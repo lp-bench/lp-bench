@@ -1,10 +1,7 @@
-/- Paper: Disproof of the Odd Hadwiger Conjecture (Kühn–Sauermann–Steiner–Wigderson,
-arXiv:2512.20392). -/
 import Mathlib.Combinatorics.SimpleGraph.Acyclic
 import Mathlib.Combinatorics.SimpleGraph.Coloring.Vertex
 import Mathlib.Combinatorics.SimpleGraph.Subgraph
 import Mathlib.Algebra.Order.Archimedean.Real.Basic
-
 
 open Function Set
 
@@ -14,12 +11,9 @@ universe u
 
 variable {V : Type u}
 
-/-- A model of an odd `K_t` minor in `G`.
-
-For each vertex of `K_t`, `branch` selects a vertex-disjoint tree subgraph of
-`G`. Each branch tree is properly two-colored. Between every two distinct
-branches there is an ambient edge whose endpoints receive the same color.
-This is exactly the definition used in the paper. -/
+/-- A model of an odd `K_t` minor in `G`: `t` vertex-disjoint trees in `G`,
+each properly two-colored, such that every two of them are joined by an edge
+of `G` whose endpoints have the same color. -/
 structure OddCliqueMinorModel (G : SimpleGraph V) (t : ℕ) where
   /-- The pairwise disjoint branch trees. -/
   branch : Fin t → G.Subgraph
@@ -57,22 +51,14 @@ theorem hasOddCliqueMinor_zero (G : SimpleGraph V) : HasOddCliqueMinor G 0 := by
     same_color_adjacent := fun {i} => Fin.elim0 i
   }⟩
 
-/-- The chromatic lower bound occurring in Theorem 1.3.
-
-The ceiling converts the real-valued expression `(3/2 - δ)t` into the exact
-integer lower bound asserted for the chromatic number. -/
+/-- The chromatic bound `χ(G) ≥ (3/2 - δ)t` of Theorem 1.3, with the real
+bound rounded up (equivalent, since `χ(G)` is an integer or `∞`). -/
 def HasPaperChromaticLowerBound (G : SimpleGraph V) (δ : ℝ) (t : ℕ) : Prop :=
   ⌈((3 / 2 : ℝ) - δ) * t⌉₊ ≤ G.chromaticNumber
 
-/-- **Kühn--Sauermann--Steiner--Wigderson, Theorem 1.3.**
-
-For every fixed positive `δ` and every sufficiently large integer `t`, there
-is a finite graph whose chromatic number is at least `(3/2 - δ)t` and which
-contains no odd `K_t` minor.
-
-The paper proves this from its stronger Theorem 1.4 using a probabilistic
-construction of a pseudorandom triangle-free graph and then passing to its
-complement. -/
+/-- Theorem 1.3 of Kühn–Sauermann–Steiner–Wigderson, arXiv:2512.20392: for
+every `δ > 0` and every sufficiently large `t` there is a finite graph with
+chromatic number at least `(3/2 - δ)t` and no odd `K_t` minor. -/
 theorem P047 :
     ∀ δ : ℝ, 0 < δ → ∃ t₀ : ℕ, ∀ t : ℕ, t₀ ≤ t →
       ∃ n : ℕ, ∃ G : SimpleGraph (Fin n),

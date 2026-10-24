@@ -1,8 +1,3 @@
-/-
-Copyright (c) 2025 ProofBench participants. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: ProofBench participants
--/
 module
 
 public import Mathlib.Combinatorics.SimpleGraph.Prod
@@ -14,8 +9,6 @@ public import ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.Maps
 public import ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.Paths
 public import Mathlib.Order.Filter.Finite
 
-/-! # Minors -/
-
 @[expose] public section
 
 open Function
@@ -26,17 +19,17 @@ variable {V W X Y : Type*} {G : SimpleGraph V} {H : SimpleGraph W} {I : SimpleGr
 
 namespace SimpleGraph
 
-/- The data witnessing that `H` is a minor of `G`, as simple graphs. -/
+/-- The data witnessing that `H` is a minor of `G`, as simple graphs. -/
 structure Minor (H : SimpleGraph W) (G : SimpleGraph V) where
-  /- The branch sets of the minor. Seeing the minor as a quotient graph,
+  /-- The branch sets of the minor. Seeing the minor as a quotient graph,
   `branchSet w` is exactly the fiber of `w` under the quotient map. -/
   branchSet : W → Set V
-  /- The branch sets are pairwise disjoint. -/
+  /-- The branch sets are pairwise disjoint. -/
   pairwise_disjoint_branchSet : Pairwise fun w₁ w₂ ↦ Disjoint (branchSet w₁) (branchSet w₂)
-  /- Each branch set is connected (in particular nonempty). -/
+  /-- Each branch set is connected (in particular nonempty). -/
   connectedOn_branchSet (w : W) : G.ConnectedOn (branchSet w)
-  /- Adjacency in the minor induce adjacency between some points
-  of the corresponding branch set. -/
+  /-- Adjacency in the minor induces adjacency between some points
+  of the corresponding branch sets. -/
   exists_mem_branchSet_of_adj ⦃w₁ w₂ : W⦄ :
     H.Adj w₁ w₂ → ∃ v₁ ∈ branchSet w₁, ∃ v₂ ∈ branchSet w₂, G.Adj v₁ v₂
 
@@ -44,6 +37,7 @@ namespace Minor
 
 variable {M N : Minor H G}
 
+/-- A minor is determined by its branch sets. -/
 lemma branchSet_injective : Injective (branchSet : Minor H G → W → Set V) := by
   rintro ⟨M⟩ ⟨N⟩; congr!
 
@@ -58,12 +52,15 @@ protected def Disjoint (M : Minor H G) (N : Minor I G) : Prop :=
 
 instance [IsEmpty W] : Subsingleton (Minor H G) := branchSet_injective.subsingleton
 
+/-- Branch sets are nonempty. -/
 @[simp] lemma branchSet_nonempty (M : Minor H G) (w : W) : (M.branchSet w).Nonempty := by
   simpa using (M.connectedOn_branchSet w).nonempty
 
+/-- If `H` has a vertex and is a minor of `G`, then `G` has a vertex. -/
 lemma nonempty [Nonempty W] (M : Minor H G) : Nonempty V :=
   (M.branchSet_nonempty <| Classical.arbitrary _).to_type
 
+/-- Branch sets are preconnected. -/
 @[simp] lemma preconnectedOn_branchSet (M : Minor H G) (w : W) :
     G.PreconnectedOn (M.branchSet w) := (M.connectedOn_branchSet w).preconnectedOn
 
@@ -71,13 +68,8 @@ lemma nonempty [Nonempty W] (M : Minor H G) : Nonempty V :=
 protected def Finite (M : Minor H G) : Prop := ∀ w, (M.branchSet w).Finite
 
 open scoped Classical in
-/-- A witness that two branch sets are adjacent.
-
-The following properties hold:
-* `M.branchSetWitness w₁ w₂` is adjacent to `M.branchSetWitness w₂ w₁`
-if `w₁` and `w₂` are adjacent
-* `M.branchSetWitness w₁ w₂ ∈ M.branchSet w₁` always
--/
+/-- A vertex of `M.branchSet w₁` witnessing that the branch sets of `w₁` and `w₂` are adjacent:
+if `w₁` and `w₂` are adjacent, it is adjacent to `M.branchSetWitness w₂ w₁`. -/
 noncomputable def branchSetWitness (M : Minor H G) (w₁ w₂ : W) : V :=
   if hw : H.Adj w₁ w₂ then
     if WellOrderingRel w₁ w₂ then
@@ -220,8 +212,6 @@ end Minor
 /-- A graph `H` is a minor of a graph `G` if one can collapse a bunch of points together and remove
 a bunch of edges from `G` and get `H`, i.e. more conceptually if `H` is a subquotient of `G`. -/
 def IsMinor (H : SimpleGraph W) (G : SimpleGraph V) : Prop := Nonempty (Minor H G)
-
-/-! ### 2-connected minors -/
 
 namespace Minor
 

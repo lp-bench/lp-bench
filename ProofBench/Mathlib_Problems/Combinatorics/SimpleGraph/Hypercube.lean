@@ -1,17 +1,10 @@
 import Archive.Sensitivity
 import Mathlib.Combinatorics.SimpleGraph.Walk.Basic
 
-/-!
-# The hypercube graph
-
-Shared statement-layer vocabulary for the hypercube problems (P014, P079).
-The vertex type is `Q n = Fin n → Bool` from `Archive.Sensitivity`; two
-vertices are adjacent when they differ in exactly one coordinate.
--/
-
 open SimpleGraph Sensitivity
 
-/-- The hypercube of sequences of length `n`. -/
+/-- The hypercube graph on `Q n = Fin n → Bool`: two vertices are adjacent when they differ in
+exactly one coordinate. -/
 def H (n : ℕ) : SimpleGraph (Q n) :=
   {
   Adj := fun p q => ∃! i, p i ≠ q i
@@ -22,12 +15,14 @@ def H (n : ℕ) : SimpleGraph (Q n) :=
 /-- Coordinatewise complementation: the antipode of a vertex of the hypercube. -/
 def antipode {n : ℕ} (p : Q n) : Q n := fun i => !p i
 
+/-- The coordinates of the antipode. -/
 @[simp] theorem antipode_apply {n : ℕ} (p : Q n) (i : Fin n) : antipode p i = !p i := rfl
 
+/-- Taking the antipode twice gives back the vertex. -/
 @[simp] theorem antipode_antipode {n : ℕ} (p : Q n) : antipode (antipode p) = p := by
   funext i; simp
 
-/-- Antipodal vertices are never adjacent-equal: antipodes differ in every coordinate. -/
+/-- The antipode of a vertex differs from it in every coordinate. -/
 theorem antipode_ne_apply {n : ℕ} (p : Q n) (i : Fin n) : antipode p i ≠ p i := by simp
 
 /-- Complementation preserves adjacency, so it is an automorphism of the hypercube. -/

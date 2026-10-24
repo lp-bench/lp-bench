@@ -1,8 +1,8 @@
 import ProofBench.Mathlib_Problems.Combinatorics.Multigraph.ChipFiring
 
-/-- **Disprove version of P057.**  Some finite connected multigraph of cycle rank `g` has no
-effective divisor of degree at most `⌊(g + 3) / 2⌋` from whose firing class a chip can be
-moved to every vertex. -/
+/-- Some finite connected loopless multigraph of genus `g` has no effective divisor of
+degree at most `⌊(g + 3) / 2⌋` from whose firing class a chip can be moved to every
+vertex: the negation of Baker's gonality conjecture (Conjecture 3.10 of Baker 2008). -/
 theorem P057_disprove :
     ¬ ∀ G : CFGraph, graph_connected G →
       ∃ D : CFDiv G, effective D ∧ deg D ≤ (genus G + 3) / 2 ∧

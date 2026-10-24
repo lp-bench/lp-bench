@@ -3,10 +3,6 @@ import Mathlib.Combinatorics.SimpleGraph.CycleGraph
 import Mathlib.Combinatorics.SimpleGraph.Maps
 import Mathlib.Data.Finset.Card
 
-/- ------------------------------------------------------------------------------ -/
-/- Paper: A Structural Linear-Time Algorithm for Computing the Tutte Decomposition -/
-/- ------------------------------------------------------------------------------ -/
-
 namespace TutteDecomposition
 
 universe u
@@ -112,18 +108,10 @@ end TutteDecomposition
 
 open TutteDecomposition
 
-/-- **Theorem 1.1 (Bourneuf and Planken).** The Tutte-decomposition of a 2-connected graph
-`G`: the totally-nested 2-separations of `G` induce a tree-decomposition of `G` of adhesion
-two whose torsos — the triconnected components of `G` — are 3-connected graphs, cycles or
-`K₂`, and the separations induced by the edges of its decomposition tree are exactly the
-totally-nested 2-separations of `G`. This is the structural characterisation of Cunningham
-and Edmonds on which the paper's algorithm is based, and what that algorithm returns.
-
-The paper's `O(n + m)` running-time bound is a statement about the word-RAM model of
-computation and is not formalized here: over a Turing machine, which is the machine model
-available in Mathlib, an `O(n + m)` bound for this problem is false, so a Turing-machine
-rendering would misstate the theorem. What is formalized is the output specification the
-algorithm meets. -/
+/-- Theorem 2.4 of Bourneuf–Planken, arXiv:2508.06212 (Cunningham–Edmonds 1980), the output
+of their linear-time algorithm (Theorem 1.1; the running time is not formalised): a 2-connected
+graph has a tree-decomposition of adhesion two with torsos 3-connected, cycles or `K₂`, whose
+tree edges induce exactly the totally nested 2-separations. -/
 theorem P100 {V : Type u} [Fintype V] [DecidableEq V] (G : SimpleGraph V)
     (_hG : IsKConnected G 2) :
     ∃ (W : Type u) (D : TreeDecomp G W),

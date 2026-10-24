@@ -1,17 +1,10 @@
 import Mathlib.Combinatorics.SimpleGraph.Circulant
-import ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.Connectivity.VertexConnected
+import ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.Contraction
 
 
 universe u
 
 variable {V : Type u} [Fintype V]
-
-/-- The connectivity hypothesis used in Tutte's Wheel Theorem:
-`3`-vertex-connectivity in the sense of the shared library definition
-`SimpleGraph.IsVertexConnected` (more than `3` vertices, and still connected
-after removing any set of fewer than `3` vertices). -/
-abbrev IsThreeConnected (G : SimpleGraph V) : Prop :=
-  G.IsVertexConnected 3
 
 /-- `G` is a wheel `W n`: a cycle on `n` rim vertices, `n ≥ 3`, plus one hub
 adjacent to every rim vertex.  With this indexing, `W 3` is isomorphic to
@@ -93,69 +86,18 @@ theorem deleteEdge_not_adj (G : SimpleGraph V) (u v : V) :
     ¬ (DeleteEdge G u v).Adj u v := by
   simp [deleteEdge_adj_iff]
 
-/-- The equivalence relation that identifies the two endpoints of an edge. -/
-def contractionRelation (e : Sym2 V) (a b : V) : Prop :=
-  a = b ∨ (a ∈ e ∧ b ∈ e)
-
-/-- The setoid used for edge contraction. -/
-def contractionSetoid (e : Sym2 V) : Setoid V where
-  r := contractionRelation e
-  iseqv := {
-    refl := fun _ => Or.inl rfl
-    symm := by
-      intro a b h
-      rcases h with rfl | ⟨ha, hb⟩
-      · exact Or.inl rfl
-      · exact Or.inr ⟨hb, ha⟩
-    trans := by
-      intro a b c h1 h2
-      rcases h1 with rfl | ⟨ha, hb⟩
-      · exact h2
-      · rcases h2 with rfl | ⟨_, hc⟩
-        · exact Or.inr ⟨ha, hb⟩
-        · exact Or.inr ⟨ha, hc⟩
-  }
-
-/-- Vertex type after contracting edge `e`. -/
-def ContractedV (e : Sym2 V) : Type u :=
-  Quotient (contractionSetoid e)
-
-noncomputable instance contractedVDecidableEq (e : Sym2 V) :
-    DecidableEq (ContractedV e) :=
-  Classical.decEq _
-
-noncomputable instance contractedVFintype (e : Sym2 V) :
-    Fintype (ContractedV e) :=
-  Fintype.ofSurjective (Quotient.mk (contractionSetoid e))
-    Quotient.mk_surjective
-
-/-- Contract edge `e` in `G`.  Parallel edges created by contraction are
-automatically collapsed because the result is a `SimpleGraph`; loops are
-discarded by the `x ≠ y` condition. -/
-def SimpleGraph.contractEdge (G : SimpleGraph V) (e : Sym2 V) :
-    SimpleGraph (ContractedV e) where
-  Adj x y :=
-    x ≠ y ∧
-      ∃ u v : V,
-        Quotient.mk (contractionSetoid e) u = x ∧
-        Quotient.mk (contractionSetoid e) v = y ∧
-        G.Adj u v
-  symm := ⟨by
-    rintro x y ⟨hne, u, v, rfl, rfl, huv⟩
-    exact ⟨hne.symm, v, u, rfl, rfl, huv.symm⟩⟩
-  loopless := ⟨fun _ h => h.1 rfl⟩
-
 /-- The precise edge conclusion of Tutte's Wheel Theorem for endpoints `u v`:
-`u v` is an edge and either deleting it or contracting it leaves a
-3-connected graph. -/
+`u v` is an edge and either deleting it leaves a 3-connected graph, or it lies in
+no triangle (so that contracting it creates no parallel edges and `G / uv` is again a
+simple graph) and contracting it leaves a 3-connected graph. -/
 def GoodTutteReductionEdge (G : SimpleGraph V) (u v : V) : Prop :=
   u ≠ v ∧ G.Adj u v ∧
     (IsThreeConnected (DeleteEdge G u v) ∨
-      IsThreeConnected (G.contractEdge s(u, v)))
+      (IsThreeConnected (G.contractEdge s(u, v)) ∧ ∀ w, ¬ (G.Adj u w ∧ G.Adj v w)))
 
-/-- **Tutte's Wheel Theorem** (1961), in the form used in proofs of
-Kuratowski's Theorem: every 3-connected graph that is not a wheel has an edge
-whose deletion or contraction is again 3-connected. -/
+/-- **Tutte's Wheel Theorem** (1961; Oxley, *Matroid Theory*, Theorem 8.8.4): every
+3-connected simple graph that is not a wheel has an edge `e` such that `G - e` is
+3-connected, or `e` lies in no triangle and `G / e` is 3-connected. -/
 theorem P020 (G : SimpleGraph V)
     (h_three_connected : IsThreeConnected G)
     (h_not_wheel : ¬ IsWheelGraph G) :

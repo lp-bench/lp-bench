@@ -2,11 +2,9 @@ import Mathlib
 
 variable {V I : Type*} [DecidableEq V] [DecidableEq I]
 
-/-- A finite hypergraph with possible parallel edges: the type `I` indexes
-edge labels and two different labels may have the same support.  This is
-deliberately distinct from `Hypergraph` (whose edge collection is a *set* of
-finsets and hence cannot represent parallel edges): multiplicities matter for
-degrees and near-regularity. -/
+/-- A finite hypergraph with possible parallel edges: `edges` is a finite set of
+edge labels from `I`, each with a support in `vertices`, and different labels may
+have the same support. -/
 structure FiniteMultiHypergraph (V I : Type*) [DecidableEq V] [DecidableEq I] where
   vertices : Finset V
   edges : Finset I
@@ -41,7 +39,8 @@ def MinDegreeAtLeast (d : ℕ) : Prop :=
 def MaxDegreeAtMost (D : ℕ) : Prop :=
   ∀ v, v ∈ H.vertices → H.degree v ≤ D
 
-/-- `μ`-near-regularity via integer degree witnesses `δ ≤ Δ ≤ μ·δ`. -/
+/-- `H` is `μ`-near-regular: for some integers `0 < δ` and `Δ ≤ μ·δ`, every
+vertex has degree between `δ` and `Δ`. -/
 def IsNearRegular (μ : ℝ) : Prop :=
   ∃ δ Δ : ℕ,
     0 < δ ∧
@@ -61,10 +60,12 @@ def IsShallowHittingEdgeSet (t : ℕ) (M : Finset I) : Prop :=
 def HasShallowHittingEdgeSet (t : ℕ) : Prop :=
   ∃ M : Finset I, H.IsShallowHittingEdgeSet t M
 
+/-- The incident edge labels at a vertex are edge labels of `H`. -/
 @[simp] theorem incidentEdges_subset_edges (v : V) : H.incidentEdges v ⊆ H.edges := by
   intro e he
   exact (Finset.mem_filter.mp he).1
 
+/-- A shallow hitting edge set is a hitting edge set. -/
 theorem shallowHitting_isHitting {t : ℕ} {M : Finset I}
     (hM : H.IsShallowHittingEdgeSet t M) : H.IsHittingEdgeSet M :=
   ⟨hM.1, fun v hv => (hM.2 v hv).1⟩

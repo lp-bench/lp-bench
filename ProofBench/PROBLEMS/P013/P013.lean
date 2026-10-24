@@ -17,8 +17,8 @@ def HasDiscrepancyAtMost {V I : Type*} (A : I → Finset V) (D : ℤ) : Prop :=
 end BeckFiala
 
 open Classical in
-/-- Beck–Fiala: if each point lies in at most `t ≥ 1` sets, there is a
-signing whose discrepancy on every set is at most `2t - 1`. -/
+/-- Beck–Fiala theorem (Beck–Fiala 1981, Discrete Appl. Math.): if each point lies in at
+most `t ≥ 1` sets, there is a signing whose discrepancy on every set is at most `2t - 1`. -/
 theorem P013 {V I : Type*} [Finite V] [Fintype I] (A : I → Finset V)
     (t : ℕ) (ht : 1 ≤ t)
     (hdegree : ∀ v, #{i | v ∈ A i} ≤ t) :

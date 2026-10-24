@@ -8,90 +8,11 @@ import Mathlib.Data.Fintype.BigOperators
 import Mathlib.Data.Fintype.Sum
 import Mathlib.Tactic
 
-/- ---------------------------------------------------- -/
-/- Paper: Explicit Lossless Vertex Expanders -/
-/- ---------------------------------------------------- -/
-
-/-!
-# P094: Explicit lossless vertex expanders
-
-This file formalizes the combinatorial layer and the main theorem of
-
-  J.-T. Hsieh, A. Lubotzky, S. Mohanty, A. Reiner and R. Y. Zhang,
-  *Explicit lossless vertex expanders*, arXiv:2504.15087.
-
-## The paper's dependency graph
-
-* Definition 2.1: two-sided `gamma`-vertex expanders and lossless expanders;
-* Definition 2.4: the *tripartite line product* of two base graphs with a
-  gadget graph;
-* Definition 2.5: structured bipartite graphs, and Definitions 2.6, 2.7:
-  small-set `j`-neighbour and skeleton expansion;
-* Lemma 2.8: explicit structured bipartite graphs from Ramanujan Cayley cubical
-  complexes (Sections 3 and 4);
-* Lemma 2.9: a gadget graph with lossless expansion and the spread property;
-* Section 2.2: Claim 2.10 (left-to-middle analysis), Lemma 2.12 and Claim 2.13
-  (middle-to-right analysis), assembled into **Theorem 2.2**, the two-sided
-  lossless expander; Theorem 1 is its `dL = dR` specialization (Remark 2.3);
-* Footnote 1 of Section 1: `(1 - eps)`-vertex expansion implies
-  `(1 - 2 eps)`-unique-neighbour expansion.
-
-## What is formalized here
-
-The target of the problem is the paper's main theorem, **Theorem 2.2**, stated
-at the end of this file as `twoSided_lossless_expanders_exist` and proved by
-`sorry`, the single `sorry` of the file.  Everything else below is proved from
-first principles with no `sorry` and no new axioms:
-
-* `two_mul_card_nbhd_le`, the sharp edge count `2 |N(S)| <= |UN(S)| + d |S|`,
-  and its consequence `uniqueNeighbourExpansion_of_vertexExpansion`, which is
-  **footnote 1**: lossless vertex expansion yields unique-neighbour expansion;
-* `nbhd_tripartiteLineProduct`, which unfolds **Definition 2.4** into the
-  statement that neighbourhoods in the tripartite line product are assembled
-  from the gadget's neighbourhoods inside each middle-vertex copy.  This
-  identity is what the whole of Section 2.2 analyses;
-* `BipartiteGraph`, `BipartiteGraph.IsBiregular`, `TwoSidedVertexExpander`,
-  `IsTwoSidedVertexExpanderFamily` and `HasThetaNVertices`: the objects of
-  **Definition 2.1** and of the statement of Theorem 2.2;
-* `BipartiteGraph.nbr` and `BipartiteGraph.mem_nbr_iff_adj`: the ordinary graph
-  on `L ⊔ R` underlying a bipartite graph, with its neighbourhood function;
-* `BipartiteGraph.isVertexExpander_of_twoSided`: a `(d, d)`-biregular
-  two-sided `gamma`-vertex expander with parameter `eta` is a `gamma`-vertex
-  expander on `L ⊔ R` in the sense of the introduction, with parameter
-  `eta / 2`;
-* the corollaries `kd_regular_lossless_expanders_exist` (**Theorem 1** for
-  degrees that are multiples of `k`, in the introduction's language of
-  `d`-regular `(1 - eps)`-vertex expanders) and
-  `twoSided_uniqueNeighbour_expanders_exist` (Theorem 2.2 combined with
-  **footnote 1**: two-sided `(1 - 2 eps)`-unique-neighbour expanders).
-
-## What is deliberately not asserted
-
-* The algorithmic clause of Theorem 2.2 ("there is an algorithm that takes in
-  `n` and in `poly(n)` time outputs `Z_n`") and the word *explicit* in
-  Theorem 1: these are statements about a model of computation and are not
-  expressible in the present development.  Only the existence of the family
-  and its expansion are stated.
-* Remark 2.3, the matching-decomposition trick that turns the `dL = dR` case
-  of Theorem 2.2 into Theorem 1 for *every* `d >= d0`; the corollary proved
-  here covers the degrees `k * d` that Theorem 2.2 yields directly.
-* Lemma 2.8 (an explicit construction from Ramanujan cubical complexes) and
-  Lemma 2.9 (a probabilistic existence statement about the gadget); Theorem
-  2.2 is the combination of those two inputs with the identity
-  `nbhd_tripartiteLineProduct`.
-
-As in the paper, a bipartite graph is presented through the neighbourhood
-function of its left side, and for the two-sided notions also through that of
-its right side.
--/
-
 namespace LosslessVertexExpander
 
 open Finset
 
 variable {L R : Type*} [DecidableEq L] [DecidableEq R]
-
-/-! ## Neighbourhoods, unique neighbours and vertex expansion -/
 
 /-- `N(S)`, the neighbourhood of a set of left vertices. -/
 def nbhd (nbr : L → Finset R) (S : Finset L) : Finset R :=
@@ -107,6 +28,7 @@ def uniqueNeighbours (nbr : L → Finset R) (S : Finset L) : Finset R :=
   (nbhd nbr S).filter fun v => (fibre nbr S v).card = 1
 
 omit [DecidableEq L] in
+/-- Unique neighbours of `S` are neighbours of `S`. -/
 theorem uniqueNeighbours_subset (nbr : L → Finset R) (S : Finset L) :
     uniqueNeighbours nbr S ⊆ nbhd nbr S :=
   Finset.filter_subset _ _
@@ -140,17 +62,9 @@ theorem sum_card_nbr_eq_sum_card_fibre (nbr : L → Finset R) (S : Finset L)
     rw [fibre, Finset.card_eq_sum_ones, Finset.sum_filter]
   rw [Finset.sum_congr rfl hleft, Finset.sum_congr rfl hright, Finset.sum_comm]
 
-/-! ## Vertex expansion implies unique-neighbour expansion
-
-Footnote 1 of the paper states that `(1 - eps)`-vertex expansion implies
-`(1 - 2 eps)`-unique-neighbour expansion.  The underlying exact statement is the
-edge count `2 |N(S)| <= |UN(S)| + sum of the left degrees on S`, proved next. -/
-
 omit [DecidableEq L] in
-/-- The sharp edge count behind footnote 1: twice the neighbourhood is at most
-the number of unique neighbours plus the number of edges leaving `S`.  Indeed
-every vertex of `N(S)` that is not a unique neighbour absorbs at least two
-edges. -/
+/-- The edge count behind footnote 1: `2 |N(S)|` is at most `|UN(S)|` plus the
+number of edges leaving `S`. -/
 theorem two_mul_card_nbhd_le (nbr : L → Finset R) (S : Finset L) :
     2 * (nbhd nbr S).card ≤ (uniqueNeighbours nbr S).card + ∑ u ∈ S, (nbr u).card := by
   classical
@@ -202,8 +116,6 @@ theorem uniqueNeighbourExpansion_of_vertexExpansion (nbr : L → Finset R) (d : 
     exact_mod_cast hkey
   nlinarith [hcast, hexp]
 
-/-! ## Two-sided vertex expanders (Definition 2.1) -/
-
 /-- Definition 2.1, left half: every set of left vertices of density at most
 `delta` has at least `alpha * dL * |S|` neighbours on the right. -/
 def LeftVertexExpander [Fintype L] (nbr : L → Finset R) (dL : ℕ) (alpha delta : ℝ) : Prop :=
@@ -217,10 +129,9 @@ def TwoSidedVertexExpander [Fintype L] [Fintype R] (nbrL : L → Finset R)
     (nbrR : R → Finset L) (dL dR : ℕ) (alpha delta : ℝ) : Prop :=
   LeftVertexExpander nbrL dL alpha delta ∧ LeftVertexExpander nbrR dR alpha delta
 
-/-- The unique-neighbour counterpart of `LeftVertexExpander`: every set of left
-vertices of density at most `delta` has at least `alpha * dL * |S|` unique
-neighbours on the right.  This is the notion in which footnote 1 of the paper
-(and the abstract's "`(1 - 2 eps) d |S|` unique-neighbours") is phrased. -/
+/-- The unique-neighbour counterpart of `LeftVertexExpander` (footnote 1 of the
+paper): every set of left vertices of density at most `delta` has at least
+`alpha * dL * |S|` unique neighbours on the right. -/
 def LeftUniqueNeighbourExpander [Fintype L] (nbr : L → Finset R) (dL : ℕ)
     (alpha delta : ℝ) : Prop :=
   ∀ S : Finset L, (S.card : ℝ) ≤ delta * (Fintype.card L : ℝ) →
@@ -239,27 +150,18 @@ theorem leftUniqueNeighbourExpander_of_leftVertexExpander [Fintype L]
 
 /-- The introduction's notion of vertex expansion for an ordinary graph on `V`
 presented by its neighbourhood function: every `S ⊆ V` with `|S| <= eta |V|`
-has at least `gamma * d * |S|` distinct neighbours.  It is literally
-`LeftVertexExpander` with both sides equal to `V`. -/
+has at least `gamma * d * |S|` distinct neighbours. -/
 def IsVertexExpander {V : Type*} [Fintype V] [DecidableEq V] (nbr : V → Finset V)
     (d : ℕ) (gamma eta : ℝ) : Prop :=
   ∀ S : Finset V, (S.card : ℝ) ≤ eta * (Fintype.card V : ℝ) →
     gamma * (d * S.card) ≤ ((nbhd nbr S).card : ℝ)
 
-/-! ## The tripartite line product (Definition 2.4)
-
-The ingredients are two bipartite base graphs `GL = (L, M, EL)` and
-`GR = (R, M, ER)`, together with, for each middle vertex `u`, injections
-`LNbr u : [DL] -> L` and `RNbr u : [DR] -> R` indexing the left and right
-neighbours of `u`, and a bipartite gadget `H` on `[DL] x [DR]`.  For every
-middle vertex `u` a copy of `H` is placed between the left and right neighbours
-of `u`: for every edge `(i, j)` of `H` there is an edge between `LNbr u i` and
-`RNbr u j`. -/
-
 variable {M : Type*} [Fintype M] [DecidableEq M]
 
-/-- The left neighbourhood function of the tripartite line product
-`Z = (GL, GR) (x) H` of Definition 2.4. -/
+/-- The left neighbourhood function of the tripartite line product `(GL, GR) ⊗ H`
+(Definition 2.4): `LNbr u` and `RNbr u` list the left and right neighbours of the
+middle vertex `u`, and for each edge `(i, j)` of the gadget `hnbr` on `[DL] × [DR]`
+the vertex `LNbr u i` is joined to `RNbr u j`. -/
 def tripartiteLineProduct [Fintype R] {DL DR : ℕ} (LNbr : M → Fin DL → L)
     (RNbr : M → Fin DR → R) (hnbr : Fin DL → Finset (Fin DR)) (x : L) : Finset R :=
   Finset.univ.filter fun y : R =>
@@ -277,10 +179,9 @@ def gadgetNbhd {DL DR : ℕ} (hnbr : Fin DL → Finset (Fin DR)) (A : Finset (Fi
   A.biUnion hnbr
 
 omit [DecidableEq M] in
-/-- **Definition 2.4, unfolded.**  In the tripartite line product, the
-neighbourhood of a set `S` of left vertices is the union, over all middle
-vertices `u`, of the images under `RNbr u` of the gadget neighbourhoods of the
-traces of `S` at `u`.  All of Section 2.2 analyses exactly this union. -/
+/-- Definition 2.4, unfolded: in the tripartite line product, `N(S)` is the union
+over the middle vertices `u` of the images under `RNbr u` of the gadget
+neighbourhoods of the traces of `S` at `u`. -/
 theorem nbhd_tripartiteLineProduct [Fintype R] {DL DR : ℕ} (LNbr : M → Fin DL → L)
     (RNbr : M → Fin DR → R) (hnbr : Fin DL → Finset (Fin DR)) (S : Finset L) :
     nbhd (tripartiteLineProduct LNbr RNbr hnbr) S
@@ -297,10 +198,8 @@ theorem nbhd_tripartiteLineProduct [Fintype R] {DL DR : ℕ} (LNbr : M → Fin D
     exact ⟨LNbr u i, hiS, u, i, j, rfl, hRy, hji⟩
 
 omit [DecidableEq M] in
-/-- Consequently, `Z` never expands a set beyond what the gadget copies can
-supply: the neighbourhood of `S` is covered by the `|M|` gadget images.  This is
-the trivial upper bound that the lossless analysis of Section 2.2 has to
-saturate. -/
+/-- In the tripartite line product, `|N(S)|` is at most the sum over the middle
+vertices `u` of the gadget neighbourhood sizes of the traces of `S` at `u`. -/
 theorem card_nbhd_tripartiteLineProduct_le [Fintype R] {DL DR : ℕ}
     (LNbr : M → Fin DL → L) (RNbr : M → Fin DR → R)
     (hnbr : Fin DL → Finset (Fin DR)) (S : Finset L) :
@@ -312,13 +211,6 @@ theorem card_nbhd_tripartiteLineProduct_le [Fintype R] {DL DR : ℕ}
   refine Finset.sum_le_sum ?_
   intro u _
   exact Finset.card_image_le
-
-/-! ## Finite bipartite graphs and biregularity
-
-Definition 2.1 and Theorem 2.2 speak about bipartite graphs `Z_n = (L_n, R_n,
-E_n)`.  Such a graph is recorded by the sizes of its two sides and its edge
-relation; its two neighbourhood functions are then read off, and the notions
-above apply to them. -/
 
 /-- A finite bipartite graph `(L, R, E)` with left side `L = Fin nL`, right
 side `R = Fin nR` and edge relation `Adj`. -/
@@ -342,11 +234,13 @@ open Classical in
 noncomputable def rightNbr (G : BipartiteGraph) (v : Fin G.nR) : Finset (Fin G.nL) :=
   Finset.univ.filter fun u => G.Adj u v
 
+/-- Membership in `leftNbr` is adjacency. -/
 @[simp]
 theorem mem_leftNbr {G : BipartiteGraph} {u : Fin G.nL} {v : Fin G.nR} :
     v ∈ G.leftNbr u ↔ G.Adj u v := by
   simp [leftNbr]
 
+/-- Membership in `rightNbr` is adjacency. -/
 @[simp]
 theorem mem_rightNbr {G : BipartiteGraph} {u : Fin G.nL} {v : Fin G.nR} :
     u ∈ G.rightNbr v ↔ G.Adj u v := by
@@ -381,6 +275,7 @@ theorem nL_eq_nR {G : BipartiteGraph} {d : ℕ} (hd : 0 < d) (h : G.IsBiregular 
 /-- The vertex set `L ⊔ R` of `G` viewed as an ordinary graph. -/
 abbrev Vertex (G : BipartiteGraph) : Type := Fin G.nL ⊕ Fin G.nR
 
+/-- `L ⊔ R` has `nL + nR` vertices. -/
 theorem card_vertex (G : BipartiteGraph) : Fintype.card G.Vertex = G.nL + G.nR := by
   simp [Vertex]
 
@@ -394,6 +289,7 @@ noncomputable def nbr (G : BipartiteGraph) : Fin G.nL ⊕ Fin G.nR → Finset G.
 def IsRegular (G : BipartiteGraph) (d : ℕ) : Prop :=
   ∀ x : G.Vertex, (G.nbr x).card = d
 
+/-- A `(d, d)`-biregular graph is `d`-regular on `L ⊔ R`. -/
 theorem isRegular_of_isBiregular {G : BipartiteGraph} {d : ℕ} (h : G.IsBiregular d d) :
     G.IsRegular d := by
   rintro (u | v)
@@ -404,7 +300,7 @@ theorem isRegular_of_isBiregular {G : BipartiteGraph} {d : ℕ} (h : G.IsBiregul
 def toSimpleGraph (G : BipartiteGraph) : SimpleGraph G.Vertex :=
   SimpleGraph.fromRel fun x y => ∃ u v, x = Sum.inl u ∧ y = Sum.inr v ∧ G.Adj u v
 
-/-- `nbr` is the honest neighbourhood function of the underlying simple graph. -/
+/-- `nbr` is the neighbourhood function of `toSimpleGraph`. -/
 theorem mem_nbr_iff_adj (G : BipartiteGraph) (x y : G.Vertex) :
     y ∈ G.nbr x ↔ G.toSimpleGraph.Adj x y := by
   rcases x with u | v <;> rcases y with u' | v' <;>
@@ -433,14 +329,9 @@ theorem nbhd_nbr (G : BipartiteGraph) (S : Finset G.Vertex) :
     · rintro ⟨u', hu'S, hvu'⟩
       exact ⟨Sum.inl u', hu'S, by simpa [nbr] using hvu'⟩
 
-/-- **Two-sided expansion is vertex expansion of the whole graph.**  A
-`(d, d)`-biregular two-sided `gamma`-vertex expander with density threshold
-`eta` is a `gamma`-vertex expander on `L ⊔ R` in the sense of the introduction,
-with density threshold `eta / 2`: a set `S` of at most `(eta / 2) |L ⊔ R| =
-eta |L| = eta |R|` vertices splits into `S ∩ L` and `S ∩ R`, each of which is
-small enough to expand, and their neighbourhoods are disjoint.  This is the
-step "when `dL = dR` this recovers the standard notion of lossless expansion"
-of Section 1. -/
+/-- A `(d, d)`-biregular two-sided `gamma`-vertex expander with density threshold
+`eta` is a `gamma`-vertex expander on `L ⊔ R` with threshold `eta / 2` (Section 1:
+for `dL = dR` the two-sided notion recovers the usual one). -/
 theorem isVertexExpander_of_twoSided (G : BipartiteGraph) {d : ℕ} (hd : 0 < d)
     (hreg : G.IsBiregular d d) {gamma eta : ℝ}
     (h : TwoSidedVertexExpander G.leftNbr G.rightNbr d d gamma eta) :
@@ -472,13 +363,9 @@ theorem isVertexExpander_of_twoSided (G : BipartiteGraph) {d : ℕ} (hd : 0 < d)
 
 end BipartiteGraph
 
-/-! ## Families of bipartite graphs (Definition 2.1, family form) -/
-
-/-- **Definition 2.1** for a family `Z n` of `(dL, dR)`-biregular bipartite
-graphs: `Z` is a two-sided `gamma`-vertex expander if there is a single
-`eta > 0` (in the paper, depending only on `dL, dR, gamma`; in particular
-uniform over the family) such that every `Z n` is a two-sided `gamma`-vertex
-expander with density threshold `eta`, on both of its sides. -/
+/-- Definition 2.1 for a family `Z n` of bipartite graphs: there is one `eta > 0`,
+uniform over the family, such that every `Z n` is a two-sided `gamma`-vertex
+expander with degrees `dL, dR` and density threshold `eta`. -/
 def IsTwoSidedVertexExpanderFamily (Z : ℕ → BipartiteGraph) (dL dR : ℕ) (gamma : ℝ) :
     Prop :=
   ∃ eta : ℝ, 0 < eta ∧
@@ -490,30 +377,13 @@ def HasThetaNVertices (Z : ℕ → BipartiteGraph) : Prop :=
   Asymptotics.IsTheta Filter.atTop (fun n : ℕ => (((Z n).nL + (Z n).nR : ℕ) : ℝ))
     fun n : ℕ => (n : ℝ)
 
-/-! ## Theorem 2.2: the main theorem -/
-
 end LosslessVertexExpander
 
 open LosslessVertexExpander in
-/-- **Theorem 2.2** -- the main theorem of the paper.  For every `eps` in
-`(0, 1]` there is `k = k(eps)` such that for every `beta` in `(0, 1]` there is
-`d0 = d0(eps, beta)` such that for all `dL, dR >= d0` with
-`beta <= dL / dR <= beta + eps` there is an infinite family `(Z_n)` of
-`(k dL, k dR)`-biregular bipartite graphs on `Θ(n)` vertices which is a
-two-sided `(1 - eps)`-vertex expander in the sense of Definition 2.1.
-
-Encoding notes.  The dependence `k = k(eps)` and `d0 = d0(eps, beta)` is
-recorded by the quantifier order.  The ratio window
-`beta <= dL / dR <= beta + eps` is written multiplicatively as
-`beta * dR <= dL` and `dL <= (beta + eps) * dR`, which is equivalent since
-`dR >= d0 > 0`.  Two-sided `(1 - eps)`-vertex expansion is
-`IsTwoSidedVertexExpanderFamily`, with one density threshold `eta > 0` for the
-whole family, and `Θ(n)` vertices is `HasThetaNVertices`.  The paper's
-additional clause that `Z_n` is output by a `poly(n)`-time algorithm is a
-statement about a model of computation and is not asserted.
-
-This is the target statement of problem P094; its `sorry` is the only one in
-the file. -/
+/-- Theorem 2.2 of Hsieh–Lubotzky–Mohanty–Reiner–Zhang, arXiv:2504.15087, existence only (the
+paper's polynomial-time algorithm is not asserted): for `eps ∈ (0, 1]` there is `k`, and for each
+`beta ∈ (0, 1]` a `d₀`, such that for `d₀ ≤ dL, dR` with `beta ≤ dL / dR ≤ beta + eps` some family
+of `(k dL, k dR)`-biregular graphs on `Θ(n)` vertices is a two-sided `(1 - eps)`-vertex expander. -/
 theorem P094 {eps : ℝ} (heps0 : 0 < eps) (heps1 : eps ≤ 1) :
     ∃ k : ℕ, 0 < k ∧ ∀ beta : ℝ, 0 < beta → beta ≤ 1 →
       ∃ d₀ : ℕ, 0 < d₀ ∧
@@ -529,17 +399,10 @@ namespace LosslessVertexExpander
 
 open Finset
 
-/-! ## Corollaries -/
-
-/-- **Theorem 1 for degrees divisible by `k`.**  For every `eps` in `(0, 1]`
-there are `k > 0` and `d0` such that for every `d >= d0` there is an infinite
-family of `k d`-regular graphs on `Θ(n)` vertices that are `(1 - eps)`-vertex
-expanders in the sense of the introduction: every set of at most `eta |V|`
-vertices has at least `(1 - eps) k d |S|` distinct neighbours.  This is the
-`beta = 1`, `dL = dR` case of Theorem 2.2 (the case singled out in Section 1
-and in Remark 2.3), read through `isVertexExpander_of_twoSided`.  Extending it
-from the degrees `k d` to every `d >= d0` is Remark 2.3, which is not
-formalized here. -/
+/-- Theorem 1 of the paper for degrees divisible by `k` (the case `beta = 1`, `dL = dR` of
+Theorem 2.2): for `eps ∈ (0, 1]` there are `k > 0` and `d₀` such that for every `d ≥ d₀` some
+family of `k d`-regular graphs on `Θ(n)` vertices consists of `(1 - eps)`-vertex expanders.
+The extension to every degree `d ≥ d₀` (Remark 2.3) is not formalised. -/
 theorem kd_regular_lossless_expanders_exist {eps : ℝ} (heps0 : 0 < eps) (heps1 : eps ≤ 1) :
     ∃ k : ℕ, 0 < k ∧ ∃ d₀ : ℕ, 0 < d₀ ∧ ∀ d : ℕ, d₀ ≤ d →
       ∃ Z : ℕ → BipartiteGraph,
@@ -560,11 +423,8 @@ theorem kd_regular_lossless_expanders_exist {eps : ℝ} (heps0 : 0 < eps) (heps1
   exact BipartiteGraph.isVertexExpander_of_twoSided (Z n) (mul_pos hk hd_pos) (hbireg n)
     (hexp n)
 
-/-- **Theorem 2.2 combined with footnote 1.**  The families of Theorem 2.2 are
-two-sided `(1 - 2 eps)`-unique-neighbour expanders: every small set on either
-side has at least `(1 - 2 eps)` times its degree times its size unique
-neighbours.  This is the abstract's "(which implies `(1 - 2 eps) d |S|`
-unique-neighbours)". -/
+/-- Theorem 2.2 combined with footnote 1: the families of Theorem 2.2 are two-sided
+`(1 - 2 eps)`-unique-neighbour expanders. -/
 theorem twoSided_uniqueNeighbour_expanders_exist {eps : ℝ} (heps0 : 0 < eps)
     (heps1 : eps ≤ 1) :
     ∃ k : ℕ, 0 < k ∧ ∀ beta : ℝ, 0 < beta → beta ≤ 1 →

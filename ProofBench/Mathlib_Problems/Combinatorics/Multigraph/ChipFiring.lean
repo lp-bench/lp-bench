@@ -1,21 +1,13 @@
 import ProofBench.Mathlib_Problems.Combinatorics.Multigraph.CycleDoubleCover
 import Mathlib.Algebra.Group.Subgroup.Finite
 
-/-!
-This minimal statement-layer API is adapted from the `CFGraph` model in
-Dhyey Mavani and Nathan Pflueger's Apache-2.0-licensed
-`chip-firing-with-lean` development, rebased on this project's shared
-`Multigraph` so that chip-firing, cycle double covers and edge colourings
-speak the same language.
--/
-
 universe u
 
 open scoped BigOperators
 
-/-- A finite nonempty loopless multigraph over the shared `Multigraph`
-model: `E` indexes the edges, so distinct indices with equal endpoints are
-parallel edges. -/
+/-- A finite nonempty loopless multigraph: `E` indexes the edges, so distinct
+indices with equal endpoints are parallel edges. Adapted from the `CFGraph` of
+Mavani–Pflueger's Apache-2.0 `chip-firing-with-lean`. -/
 structure CFGraph where
   V : Type u
   E : Type u

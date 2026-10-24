@@ -19,10 +19,10 @@ noncomputable def crossingEdges (S : Finset V) : Finset E := by
   exact Finset.univ.filter fun e =>
     (∃ x ∈ M.ends e, x ∈ S) ∧ ∃ y ∈ M.ends e, y ∉ S
 
-/-- Every odd proper vertex set is crossed by at least `d` edges. -/
+/-- Every vertex set of odd size (the whole vertex set included, so that the number of
+vertices is even unless `d = 0`) is crossed by at least `d` edges. -/
 def OddlyEdgeConnected [Fintype V] (d : ℕ) : Prop :=
-  ∀ S : Finset V, Odd S.card → S ≠ Finset.univ →
-    d ≤ (M.crossingEdges S).card
+  ∀ S : Finset V, Odd S.card → d ≤ (M.crossingEdges S).card
 
 /-- Every proper nonempty vertex set is crossed by at least `d` edges. -/
 def EdgeConnected [Fintype V] (d : ℕ) : Prop :=

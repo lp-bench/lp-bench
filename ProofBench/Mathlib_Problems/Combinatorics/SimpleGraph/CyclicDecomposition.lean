@@ -1,20 +1,6 @@
 import ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.Decomposition
 import Mathlib.Combinatorics.SimpleGraph.Circulant
 
-/-!
-# Cycle decompositions for the Kurkofka–Planken connectivity theorem
-
-Kurkofka–Planken (*A characterisation of all vertex-transitive finite graphs of connectivity < 5*)
-introduce graph-decompositions whose decomposition graph "may take the form of an arbitrary graph,
-such as a cycle, in which case we speak of a *cycle-decomposition* [9]"; their reference [9] is the
-Diestel–Jacobs–Knappe–Kurkofka paper *Canonical graph decompositions via coverings*, whose
-graph-decomposition.
-
-A cycle-decomposition is therefore **not a new structure**: it is `GraphDecomp G H` with the model
-`H` taken to be the cycle `C_l = cycleGraph l`. This file makes that the definition and rebuilds the
-adhesion/torso/bag vocabulary and the named "cycle of `X`-bags" classes (Definition 2.3) on top of
-it. -/
-
 open SimpleGraph
 
 universe u v
@@ -32,18 +18,18 @@ def GraphIso {A : Type u} {B : Type v}
 def SetHasTwo (S : Set V) : Prop :=
   exists a b : V, a ≠ b /\ S = ({a, b} : Set V)
 
-/-- `A` and `B` are the same unoriented edge of the decomposition cycle. -/
+/-- `ij` and `km` are the same unoriented edge of the decomposition cycle. -/
 def SameCycleEdge {l : Nat} (i j k m : Fin l) : Prop :=
   (i = k /\ j = m) \/ (i = m /\ j = k)
 
-/-- Two edges of the decomposition cycle share an endpoint. -/
+/-- The edges `ij` and `km` of the decomposition cycle share an endpoint. -/
 def CycleEdgesIncident {l : Nat} (i j k m : Fin l) : Prop :=
   i = k ∨ i = m \/ j = k \/ j = m
 
-/-- A **cycle-decomposition** of `G` of length `l` (Kurkofka–Planken): a Diestel
-graph-decomposition (`GraphDecomp`, from `H_decomposition`) whose model graph is the cycle
-`C_l = cycleGraph l`. It is literally the specialisation of `GraphDecomp` to a cyclic model — no
-new axioms. Length bounds (`3 ≤ l`, etc.) are imposed by the Definition 2.3 classes below. -/
+/-- A cycle-decomposition of `G` of length `l` (Kurkofka–Planken): a graph-decomposition
+`GraphDecomp` modelled on the cycle `C_l = cycleGraph l`. Bounds on `l` are imposed by the
+classes of Definition 2.3 below, which omit the paper's requirement that `G` be
+quasi-`4`-connected. -/
 abbrev CycleDecomp (G : SimpleGraph V) (l : Nat) := GraphDecomp G (cycleGraph l)
 
 namespace CycleDecomp
@@ -59,12 +45,11 @@ def bagGraph (O : CycleDecomp G l) (i : Fin l) :
 def adhesion (O : CycleDecomp G l) (i j : Fin l) : Set V :=
   O.bag i ∩ O.bag j
 
-/-- Every cycle adhesion set has size two, as required in the paper's
-cycle-decomposition terminology used before Definition 2.3. -/
+/-- Every adhesion set along the cycle has size two. -/
 def AdhesionsHaveSizeTwo (O : CycleDecomp G l) : Prop :=
   forall i j : Fin l, (cycleGraph l).Adj i j -> SetHasTwo (O.adhesion i j)
 
-/-- Every pair of distinct adhesion sets is disjoint. -/
+/-- Adhesion sets on distinct cycle edges are disjoint. -/
 def PairwiseDisjointAdhesions (O : CycleDecomp G l) : Prop :=
   forall i j k m : Fin l,
     (cycleGraph l).Adj i j ->
@@ -72,7 +57,7 @@ def PairwiseDisjointAdhesions (O : CycleDecomp G l) : Prop :=
     Not (SameCycleEdge i j k m) ->
       Disjoint (O.adhesion i j) (O.adhesion k m)
 
-/-- Adhesions on non-consecutive cycle edges are disjoint. -/
+/-- Adhesion sets on cycle edges without a common endpoint are disjoint. -/
 def NonconsecutiveAdhesionsDisjoint (O : CycleDecomp G l) : Prop :=
   forall i j k m : Fin l,
     (cycleGraph l).Adj i j ->
@@ -170,7 +155,8 @@ def IsC4Torso (O : CycleDecomp G l) (i : Fin l) : Prop :=
 
 end CycleDecomp
 
-/-- Definition 2.3: cycle of `K_4` bags of length `l`. -/
+/-- Definition 2.3 of Kurkofka–Planken: a cycle of `K_4` bags of length `l ≥ 4`, with pairwise
+disjoint adhesion sets of size two. -/
 def IsCycleOfK4Bags (G : SimpleGraph V) (l : Nat) : Prop :=
   exists O : CycleDecomp G l,
     4 <= l /\
@@ -178,7 +164,8 @@ def IsCycleOfK4Bags (G : SimpleGraph V) (l : Nat) : Prop :=
       O.PairwiseDisjointAdhesions /\
       forall i : Fin l, O.IsK4Bag i
 
-/-- Definition 2.3: cycle alternating between `K_4` bags and `C_4` bags. -/
+/-- Definition 2.3: a cycle of even length `l ≥ 4` alternating between `K_4` bags (even nodes) and
+`C_4` bags (odd nodes), with pairwise disjoint adhesion sets of size two. -/
 def IsCycleAlternatingK4C4 (G : SimpleGraph V) (l : Nat) : Prop :=
   l % 2 = 0 /\
     exists O : CycleDecomp G l,
@@ -189,7 +176,8 @@ def IsCycleAlternatingK4C4 (G : SimpleGraph V) (l : Nat) : Prop :=
           (i.val % 2 = 0 /\ O.IsK4Bag i) \/
             (i.val % 2 = 1 /\ O.IsC4Bag i)
 
-/-- Definition 2.3: cycle of triangle bags. -/
+/-- Definition 2.3: a cycle of triangle bags of length `l ≥ 6`, with adhesion sets of size two
+that are disjoint on cycle edges without a common endpoint. -/
 def IsCycleOfTriangleBags (G : SimpleGraph V) (l : Nat) : Prop :=
   exists O : CycleDecomp G l,
     6 <= l /\
@@ -197,7 +185,9 @@ def IsCycleOfTriangleBags (G : SimpleGraph V) (l : Nat) : Prop :=
       O.NonconsecutiveAdhesionsDisjoint /\
       forall i : Fin l, O.IsTriangleBag i
 
-/-- Definition 2.3: cycle alternating between `K_{2,2}` bags and `C_4` torsos. -/
+/-- Definition 2.3: a cycle of even length `l ≥ 6` alternating between `K_{2,2}` bags with `K_4`
+torsos (even nodes) and `C_4` torsos (odd nodes), with pairwise disjoint independent adhesion sets
+of size two. -/
 def IsCycleAlternatingK22C4 (G : SimpleGraph V) (l : Nat) : Prop :=
   l % 2 = 0 /\
     exists O : CycleDecomp G l,
@@ -209,7 +199,8 @@ def IsCycleAlternatingK22C4 (G : SimpleGraph V) (l : Nat) : Prop :=
           (i.val % 2 = 0 /\ O.IsK4Torso i /\ O.IsK22Bag i) \/
             (i.val % 2 = 1 /\ O.IsC4Torso i)
 
-/-- Definition 2.3: cycle of `C_4` bags. -/
+/-- Definition 2.3: a cycle of `C_4` bags of length `l ≥ 4`, with pairwise disjoint adhesion sets
+each inducing a `K_2`. -/
 def IsCycleOfC4Bags (G : SimpleGraph V) (l : Nat) : Prop :=
   exists O : CycleDecomp G l,
     4 <= l /\
@@ -217,7 +208,8 @@ def IsCycleOfC4Bags (G : SimpleGraph V) (l : Nat) : Prop :=
       O.PairwiseDisjointAdhesions /\
       forall i : Fin l, O.IsC4Bag i
 
-/-- Definition 2.3: cycle of `K_{2,2}` bags. -/
+/-- Definition 2.3: a cycle of `K_{2,2}` bags with `K_4` torsos, of length `l ≥ 3`, with pairwise
+disjoint adhesion sets of size two. -/
 def IsCycleOfK22Bags (G : SimpleGraph V) (l : Nat) : Prop :=
   exists O : CycleDecomp G l,
     3 <= l /\

@@ -1,10 +1,8 @@
-/- Paper: A hypergraph bandwidth theorem (Lang–Sanhueza-Matamala, arXiv:2412.14891). -/
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Combinatorics.Hypergraph.Basic
 import Mathlib.Combinatorics.SimpleGraph.Connectivity.Connected
 import Mathlib.Data.Fintype.Powerset
 import Mathlib.Data.Nat.Choose.Basic
-
 
 open scoped BigOperators Hypergraph
 open Set
@@ -12,8 +10,6 @@ open Set
 namespace HypergraphBandwidth
 
 universe u v
-
-/-! ## Basic finite-uniform hypergraph notions -/
 
 /-- A hypergraph is spanning when its declared vertex set is the whole ambient type. -/
 def IsSpanning {V : Type u} (G : Hypergraph V) : Prop :=
@@ -46,8 +42,6 @@ def IsHom {V : Type u} {W : Type v} (H : Hypergraph V) (G : Hypergraph W)
 def Embeds {V : Type u} {W : Type v} (H : Hypergraph V) (G : Hypergraph W) : Prop :=
   ∃ f : V ↪ W, IsHom H G f
 
-/-! ## Tight cycles, their powers, and closed walks -/
-
 /-- The cyclic interval of `length` vertices beginning at `start` in `Fin q`. -/
 def cyclicBlock (q length : ℕ) (start : Fin q) : Set (Fin q) :=
   {x | ∃ j : Fin length, x.val = (start.val + j.val) % q}
@@ -73,8 +67,6 @@ def HasClosedWalkOfOrder {V : Type u} (G : Hypergraph V) (k q : ℕ) : Prop :=
 def IsAperiodic {V : Type u} (k : ℕ) (G : Hypergraph V) : Prop :=
   ∃ q : ℕ, 0 < q ∧ q % k = 1 % k ∧ HasClosedWalkOfOrder G k q
 
-/-! ## Tight connectivity and components -/
-
 /--
 The line graph whose vertices are hyperedges and whose adjacency means overlap
 in exactly `k - 1` vertices.
@@ -99,8 +91,6 @@ def IsComponent {V : Type u} (k : ℕ) (F G : Hypergraph V) : Prop :=
     ∀ J : Hypergraph V,
       IsSpanningSubgraph J G → E(F) ⊆ E(J) → IsTightConnected k J → E(J) ⊆ E(F)
 
-/-! ## Fractional matchings -/
-
 /-- The total fractional-matching weight incident with a vertex. -/
 noncomputable def vertexLoad {V : Type u} [Fintype V]
     (weight : Set V → ℝ) (v : V) : ℝ := by
@@ -122,8 +112,6 @@ def HasPerfectFractionalMatching {V : Type u} [Fintype V]
   ∃ ω : FractionalMatching G,
     ∑ e : Set V, ω.weight e = (Set.ncard V(G) : ℝ) / (k : ℝ)
 
-/-! ## Hamilton frameworks -/
-
 /--
 `G` is a model of deleting `x` from `J`, with `ι` supplying the relabelling
 from `Fin s` onto the remaining vertices.
@@ -134,8 +122,9 @@ def IsVertexDeletionModel (s : ℕ) (J : Hypergraph (Fin (s + 1)))
     ∀ e : Set (Fin s), e ∈ E(G) ↔ ι '' e ∈ E(J)
 
 /--
-A Hamilton framework for a family of `s`-vertex `t`-graphs, implementing
-conditions (F1)--(F4) of Definition 3.1.
+A Hamilton framework for a family `P` of `s`-vertex `t`-graphs: conditions
+(F1)–(F4) of Definition 3.1. The consistency condition (F4) is required for
+every identification of the two vertex-deleted graphs with members of `P`.
 -/
 structure HamiltonFramework (t s : ℕ) (P : Set (Hypergraph (Fin s))) where
   framework : Hypergraph (Fin s) → Hypergraph (Fin s)
@@ -156,8 +145,6 @@ structure HamiltonFramework (t s : ℕ) (P : Set (Hypergraph (Fin s))) where
 /-- The family `P` admits at least one Hamilton framework. -/
 def AdmitsHamiltonFramework (t s : ℕ) (P : Set (Hypergraph (Fin s))) : Prop :=
   Nonempty (HamiltonFramework t s P)
-
-/-! ## Clique and property hypergraphs -/
 
 /--
 The `t`-uniform clique hypergraph `K_t(G)`: its edges are the `t`-sets every
@@ -206,8 +193,6 @@ def RobustlySatisfies {V : Type u} [Fintype V] (uniformity s : ℕ)
     ((1 - 1 / (s : ℝ) ^ 2) *
       (Nat.choose (Set.ncard V(G) - r) (s - r) : ℝ))
 
-/-! ## Blow-ups and the polylog-log cluster bound -/
-
 /-- The numerical cluster-size bound `(log (log n))^c`. -/
 noncomputable def polylogLogBound (c : ℝ) (n : ℕ) : ℝ :=
   (Real.log (Real.log (n : ℝ))) ^ c
@@ -229,6 +214,7 @@ def IsBlowUpOfCyclePower {V : Type u} [Fintype V]
             (Set.ncard {v : V | cluster v = i} : ℝ) ≤
               polylogLogBound c (Fintype.card V)
 
+/-- A blow-up of a power of a tight `k`-cycle is `k`-uniform. -/
 theorem IsBlowUpOfCyclePower.isUniform {V : Type u} [Fintype V]
     {H : Hypergraph V} {k t : ℕ} {c : ℝ}
     (hH : IsBlowUpOfCyclePower H k t c) : IsUniform k H := by
@@ -236,15 +222,11 @@ theorem IsBlowUpOfCyclePower.isUniform {V : Type u} [Fintype V]
   intro e he
   exact (hedge e).mp he |>.1
 
-/-! ## Main theorem -/
-
 /--
-**Theorem 3.5 (General Hypergraph Bandwidth Theorem).**
-
-For fixed `k`, `t`, and sampling size `s`, every sufficiently large `k`-graph
-whose `t`-clique graph robustly satisfies a family admitting a Hamilton
-framework contains every spanning blow-up of the `(t - k + 1)`-st power of a
-tight `k`-cycle whose clusters have polylog-logarithmic size.
+Theorem 3.5 of Lang–Sanhueza-Matamala, arXiv:2412.14891 (general hypergraph
+bandwidth theorem): every large `k`-graph whose `t`-clique graph robustly
+satisfies a family with a Hamilton framework contains every spanning blow-up of
+the `(t - k + 1)`-st power of a tight `k`-cycle with clusters of size `≤ (log log n)^c`.
 -/
 theorem P048
     (k t s : ℕ) (hk : 2 ≤ k) (hkt : k ≤ t) (hts : 2 * t ≤ s) :

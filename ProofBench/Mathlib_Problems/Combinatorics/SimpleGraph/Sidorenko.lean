@@ -4,13 +4,6 @@ import Mathlib.Data.Real.Basic
 import Mathlib.SetTheory.Cardinal.Finite
 import Mathlib.Tactic.FinCases
 
-/-!
-# Shared definitions for Sidorenko's conjecture (half-graphs)
-
-Used by both `challenge_04` (specific `r`) and `challenge_04_univ` (∀r), so
-the half-graph, homomorphism density, and the Sidorenko inequality live here.
--/
-
 open SimpleGraph
 
 /-- The half-graph `H_r` on `Fin r ⊕ Fin r`: `Sum.inl i` and `Sum.inr j` are

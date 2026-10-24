@@ -1,11 +1,9 @@
-import ProofBench.PROBLEMS.P105.P105
+import ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.SemiRandomProcess
 import Mathlib.Combinatorics.SimpleGraph.Hamiltonian
 import Mathlib.Probability.Distributions.Uniform
 import Mathlib.Data.Real.ENatENNReal
 import Mathlib.Topology.Order.Monotone
 import Mathlib.Topology.Instances.ENNReal.Lemmas
-
-
 
 noncomputable section
 
@@ -41,12 +39,14 @@ def liftHistoryIndependent (strategy : HistoryIndependentStrategy V) : Determini
 def liftDeterministic (strategy : DeterministicStrategy V) : Strategy V :=
   fun history offered => PMF.pure (strategy history offered)
 
+/-- Unfolding `liftHistoryIndependent`. -/
 @[simp]
 theorem liftHistoryIndependent_apply (strategy : HistoryIndependentStrategy V)
     (history : History V) (offered : V) :
     liftHistoryIndependent strategy history offered = strategy offered :=
   rfl
 
+/-- Unfolding `liftDeterministic`. -/
 @[simp]
 theorem liftDeterministic_apply (strategy : DeterministicStrategy V) (history : History V)
     (offered : V) :
@@ -60,15 +60,18 @@ def historyGraph : History V → SimpleGraph V
   | [] => ⊥
   | (offered, response) :: history => addEdge (historyGraph history) offered response
 
+/-- The empty history gives the empty graph. -/
 @[simp]
 theorem historyGraph_nil : historyGraph ([] : History V) = ⊥ :=
   rfl
 
+/-- A round `(u, v)` at the head of a history adds the edge `uv`. -/
 @[simp]
 theorem historyGraph_cons (u v : V) (history : History V) :
     historyGraph ((u, v) :: history) = addEdge (historyGraph history) u v :=
   rfl
 
+/-- The graph of a concatenation of histories is the union of their graphs. -/
 theorem historyGraph_append (h₁ h₂ : History V) :
     historyGraph (h₁ ++ h₂) = historyGraph h₁ ⊔ historyGraph h₂ := by
   induction h₁ with
@@ -84,12 +87,11 @@ theorem historyGraph_le_append (h₁ h₂ : History V) :
   rw [historyGraph_append]
   exact le_sup_left
 
+/-- Extending a history only adds edges. -/
 theorem historyGraph_mono_of_prefix {h₁ h₂ : History V} (hp : h₁ <+: h₂) :
     historyGraph h₁ ≤ historyGraph h₂ := by
   obtain ⟨t, rfl⟩ := hp
   exact historyGraph_le_append h₁ t
-
-/-! ### Deterministic strategies against a fixed realization of the offers -/
 
 /-- Run a deterministic strategy against a fixed sequence of offered vertices. -/
 def runDeterministicFrom (strategy : DeterministicStrategy V) :
@@ -117,13 +119,12 @@ theorem runDeterministicFrom_lift_eq (strategy : HistoryIndependentStrategy V)
       simp only [runDeterministicFrom, runHistoryIndependentFrom, liftHistoryIndependent]
       exact ih _
 
+/-- The lifted strategy produces the same graph as the history-independent one. -/
 theorem historyGraph_runDeterministicFrom_lift (strategy : HistoryIndependentStrategy V)
     (history : History V) (offers : List V) :
     historyGraph (runDeterministicFrom (liftHistoryIndependent strategy) history offers) =
       historyGraph (runHistoryIndependentFrom strategy history offers) := by
   rw [runDeterministicFrom_lift_eq]
-
-/-! ## The law of the semi-random process -/
 
 section Process
 
@@ -135,6 +136,7 @@ def step (S : Strategy V) (history : History V) : PMF (History V) :=
   (PMF.uniformOfFintype V).bind fun offered =>
     (S history offered).bind fun response => PMF.pure (history ++ [(offered, response)])
 
+/-- One round appends exactly one pair to the history. -/
 theorem exists_of_mem_support_step {S : Strategy V} {history h : History V}
     (hh : h ∈ (step S history).support) :
     ∃ offered response, h = history ++ [(offered, response)] := by
@@ -151,11 +153,13 @@ def playLawFrom (S : Strategy V) (h₀ : History V) : ℕ → PMF (History V)
 def playLaw (S : Strategy V) (t : ℕ) : PMF (History V) :=
   playLawFrom S [] t
 
+/-- After zero rounds the history is the starting history. -/
 @[simp]
 theorem playLawFrom_zero (S : Strategy V) (h₀ : History V) :
     playLawFrom S h₀ 0 = PMF.pure h₀ :=
   rfl
 
+/-- Round `t + 1` is one `step` after round `t`. -/
 @[simp]
 theorem playLawFrom_succ (S : Strategy V) (h₀ : History V) (t : ℕ) :
     playLawFrom S h₀ (t + 1) = (playLawFrom S h₀ t).bind (step S) :=
@@ -173,6 +177,7 @@ theorem playLawFrom_add (S : Strategy V) (h₀ : History V) (t₁ t₂ : ℕ) :
         _ = ((playLawFrom S h₀ t₁).bind fun h => playLawFrom S h t).bind (step S) := by rw [ih]
         _ = (playLawFrom S h₀ t₁).bind fun h => playLawFrom S h (t + 1) := PMF.bind_bind _ _ _
 
+/-- After `t` rounds the history has grown by exactly `t` pairs. -/
 theorem length_of_mem_support_playLawFrom (S : Strategy V) (h₀ : History V) :
     ∀ (t : ℕ) (h : History V), h ∈ (playLawFrom S h₀ t).support → h.length = h₀.length + t
   | 0, h, hh => by
@@ -187,6 +192,7 @@ theorem length_of_mem_support_playLawFrom (S : Strategy V) (h₀ : History V) :
         length_of_mem_support_playLawFrom S h₀ t h' hh']
       omega
 
+/-- The starting history is a prefix of every history reached. -/
 theorem prefix_of_mem_support_playLawFrom (S : Strategy V) (h₀ : History V) :
     ∀ (t : ℕ) (h : History V), h ∈ (playLawFrom S h₀ t).support → h₀ <+: h
   | 0, h, hh => by
@@ -199,8 +205,6 @@ theorem prefix_of_mem_support_playLawFrom (S : Strategy V) (h₀ : History V) :
       obtain ⟨u, v, rfl⟩ := exists_of_mem_support_step hstep
       exact (prefix_of_mem_support_playLawFrom S h₀ t h' hh').trans (List.prefix_append h' _)
 
-/-! ## Success probabilities -/
-
 /-- `P[G_t ∈ P]` for the process started from the history `h₀`. -/
 def successProbFrom (S : Strategy V) (h₀ : History V) (P : SimpleGraph V → Prop) (t : ℕ) :
     ℝ≥0∞ :=
@@ -210,6 +214,7 @@ def successProbFrom (S : Strategy V) (h₀ : History V) (P : SimpleGraph V → P
 def successProb (S : Strategy V) (P : SimpleGraph V → Prop) (t : ℕ) : ℝ≥0∞ :=
   successProbFrom S [] P t
 
+/-- Success probabilities are at most `1`. -/
 theorem successProbFrom_le_one (S : Strategy V) (h₀ : History V) (P : SimpleGraph V → Prop)
     (t : ℕ) : successProbFrom S h₀ P t ≤ 1 := by
   unfold successProbFrom
@@ -218,6 +223,7 @@ theorem successProbFrom_le_one (S : Strategy V) (h₀ : History V) (P : SimpleGr
         (playLawFrom S h₀ t).toOuterMeasure_mono fun x _ => Set.mem_univ x
     _ = 1 := (PMF.toOuterMeasure_apply_eq_one_iff _ _).mpr (Set.subset_univ _)
 
+/-- Success probabilities from the empty graph are at most `1`. -/
 theorem successProb_le_one (S : Strategy V) (P : SimpleGraph V → Prop) (t : ℕ) :
     successProb S P t ≤ 1 :=
   successProbFrom_le_one S [] P t
@@ -240,25 +246,27 @@ theorem successProbFrom_le_succ (S : Strategy V) (h₀ : History V) {P : SimpleG
   · rw [Set.indicator_of_notMem hh]
     exact zero_le
 
+/-- For an increasing property, the success probability is non-decreasing in `t`. -/
 theorem successProbFrom_mono (S : Strategy V) (h₀ : History V) {P : SimpleGraph V → Prop}
     (hP : IncreasingProperty P) : Monotone (successProbFrom S h₀ P) :=
   monotone_nat_of_le_succ (successProbFrom_le_succ S h₀ hP)
 
+/-- For an increasing property, `t ↦ P[G_t ∈ P]` is non-decreasing. -/
 theorem successProb_mono (S : Strategy V) {P : SimpleGraph V → Prop}
     (hP : IncreasingProperty P) : Monotone (successProb S P) :=
   successProbFrom_mono S [] hP
-
-/-! ## The hitting times `τ_P(S, q, n)` and `τ_P(q, n)` -/
 
 /-- `τ_P(S, q, n)`: the least round `t` with `P[G_t ∈ P] ≥ q`, and `∞` if there is none. -/
 def hittingTime (S : Strategy V) (P : SimpleGraph V → Prop) (q : ℝ≥0∞) : ℕ∞ :=
   ⨅ (t : ℕ) (_ : q ≤ successProb S P t), (t : ℕ∞)
 
+/-- `τ_P(S, q, n) ≤ t` whenever `P[G_t ∈ P] ≥ q`. -/
 theorem hittingTime_le {S : Strategy V} {P : SimpleGraph V → Prop} {q : ℝ≥0∞} {t : ℕ}
     (h : q ≤ successProb S P t) : hittingTime S P q ≤ t := by
   unfold hittingTime
   exact iInf₂_le t h
 
+/-- `m ≤ τ_P(S, q, n)` if every `t` with `P[G_t ∈ P] ≥ q` satisfies `m ≤ t`. -/
 theorem le_hittingTime {S : Strategy V} {P : SimpleGraph V → Prop} {q : ℝ≥0∞} {m : ℕ}
     (h : ∀ t : ℕ, q ≤ successProb S P t → m ≤ t) : (m : ℕ∞) ≤ hittingTime S P q := by
   unfold hittingTime
@@ -276,10 +284,12 @@ variable (V) in
 def minHittingTime (P : SimpleGraph V → Prop) (q : ℝ≥0∞) : ℕ∞ :=
   ⨅ S : Strategy V, hittingTime S P q
 
+/-- `τ_P(q, n) ≤ τ_P(S, q, n)` for every strategy `S`. -/
 theorem minHittingTime_le (P : SimpleGraph V → Prop) (q : ℝ≥0∞) (S : Strategy V) :
     minHittingTime V P q ≤ hittingTime S P q :=
   iInf_le _ S
 
+/-- A common lower bound for all `τ_P(S, q, n)` bounds `τ_P(q, n)` from below. -/
 theorem le_minHittingTime {P : SimpleGraph V → Prop} {q : ℝ≥0∞} {m : ℕ∞}
     (h : ∀ S : Strategy V, m ≤ hittingTime S P q) : m ≤ minHittingTime V P q :=
   le_iInf h
@@ -289,8 +299,6 @@ theorem minHittingTime_mono (P : SimpleGraph V → Prop) : Monotone (minHittingT
   fun _ _ hq => iInf_mono fun S => hittingTime_mono S P hq
 
 end Process
-
-/-! ## The constant `τ_P` -/
 
 /-- `limsup_{n → ∞} τ_P(q, n) / n`, over the vertex sets `[n] = Fin n`, `n ≥ 1`
 (the index `n` of the `limsup` below is the paper's `n - 1`). -/
@@ -304,12 +312,14 @@ is the paper's limit. -/
 def tau (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) : ℝ≥0∞ :=
   ⨆ q ∈ Set.Ioo (0 : ℝ≥0∞) 1, tauAt P q
 
+/-- `limsup_n τ_P(q, n) / n` is non-decreasing in `q`. -/
 theorem tauAt_mono (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) : Monotone (tauAt P) := by
   intro q₁ q₂ hq
   unfold tauAt
   refine limsup_le_limsup (Eventually.of_forall fun n => ?_)
   exact ENNReal.div_le_div_right (ENat.toENNReal_mono (minHittingTime_mono _ hq)) _
 
+/-- `τ_P` bounds `limsup_n τ_P(q, n) / n` for every `0 < q < 1`. -/
 theorem tauAt_le_tau (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) {q : ℝ≥0∞}
     (hq : q ∈ Set.Ioo (0 : ℝ≥0∞) 1) : tauAt P q ≤ tau P := by
   unfold tau
@@ -332,12 +342,9 @@ theorem tendsto_tauAt (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) :
             ENNReal.half_lt_self one_ne_zero ENNReal.one_ne_top⟩
     · exact tauAt_le_tau P ⟨hq0, hq⟩
 
-/-! ## From almost-sure statements to bounds on `τ_P` -/
-
 /-- **Upper bounds on `τ_P` from a.a.s. statements.**  If for every `ε > 0` there are
 strategies `S_n` such that `P` holds after `⌈(α + ε) n⌉` rounds with probability tending to
-`1`, then `τ_P ≤ α`.  This is how the paper passes from Proposition 2.4 and Lemma 2.5 to
-Theorem 1.1. -/
+`1`, then `τ_P ≤ α`. -/
 theorem tau_le_of_forall_exists_tendsto (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) {α : ℝ}
     (hα : 0 ≤ α)
     (h : ∀ ε : ℝ, 0 < ε → ∃ S : ∀ n : ℕ, Strategy (Fin (n + 1)),
@@ -390,7 +397,7 @@ theorem tau_le_of_forall_exists_tendsto (P : ∀ n : ℕ, SimpleGraph (Fin n) �
 
 /-- **Lower bounds on `τ_P` from a.a.s. statements.**  If for some `0 < q < 1` and every
 `ε > 0`, eventually no strategy achieves `P` with probability `q` within `(β - ε) n` rounds,
-then `τ_P ≥ β`.  This is the shape of the proof of Theorem 1.2. -/
+then `τ_P ≥ β`. -/
 theorem le_tau_of_forall_eventually (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) {β : ℝ}
     {q : ℝ≥0∞} (hq : q ∈ Set.Ioo (0 : ℝ≥0∞) 1)
     (h : ∀ ε : ℝ, 0 < ε → ∀ᶠ n : ℕ in atTop, ∀ S : Strategy (Fin (n + 1)), ∀ t : ℕ,
@@ -438,8 +445,6 @@ theorem le_tau_of_forall_eventually_of_increasing (P : ∀ n : ℕ, SimpleGraph 
   filter_upwards [h ε hε] with n hn S t ht
   exact lt_of_le_of_lt (successProb_mono S (hP (n + 1)) (Nat.le_floor ht)) (hn S)
 
-/-! ## The property `HAM` -/
-
 /-- The property `HAM` of containing a Hamiltonian cycle, through Mathlib's
 `SimpleGraph.IsHamiltonian`. -/
 def hamiltonianProperty : ∀ n : ℕ, SimpleGraph (Fin n) → Prop :=
@@ -450,6 +455,7 @@ theorem isHamiltonian_increasing {W : Type*} [Fintype W] [DecidableEq W] :
     IncreasingProperty fun G : SimpleGraph W => G.IsHamiltonian :=
   fun _ _ hGH hG => hG.mono hGH
 
+/-- `HAM` is increasing on every vertex set `[n]`. -/
 theorem hamiltonianProperty_increasing (n : ℕ) : IncreasingProperty (hamiltonianProperty n) :=
   isHamiltonian_increasing
 
@@ -460,15 +466,10 @@ theorem ofReal_ofScientific (m : ℕ) (s : Bool) (e : ℕ) :
   rw [← NNReal.coe_ofScientific, ENNReal.ofReal_coe_nnreal]
   rfl
 
-/-- **Theorem 1.1** (Gao, MacRury, Prałat).  `τ_HAM ≤ 2.01678`: for every `q < 1` and
-`ε > 0`, for all large `n` some strategy builds a Hamiltonian cycle on `[n]` with probability
-at least `q` within `(2.01678 + ε) n` rounds of the semi-random graph process.  The paper's
-constant `α ≤ 2.01678` is the numerical solution of the differential equations (4)-(6) and
-(13)-(16), obtained by running `DegreeGreedy` (with `N = 100` phases), `FullyRandomized`, and
-the clean-up algorithm of Section 2.4. -/
+/-- Theorem 1.1 of Gao–MacRury–Prałat, arXiv:2205.02350: `τ_HAM ≤ 2.01678`, i.e. for every
+`q < 1` and `ε > 0`, for all large `n` some strategy builds a Hamiltonian cycle on `[n]` with
+probability at least `q` within `(2.01678 + ε) n` rounds of the semi-random graph process. -/
 theorem P039 : tau hamiltonianProperty ≤ 2.01678 := by
   sorry
-
-/-! ## Direct corollaries -/
 
 end FullyAdaptiveHamiltonian

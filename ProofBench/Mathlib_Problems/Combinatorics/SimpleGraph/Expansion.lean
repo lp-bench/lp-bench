@@ -1,49 +1,14 @@
 import Mathlib.Combinatorics.SimpleGraph.Finite
 import Mathlib.Combinatorics.SimpleGraph.Matching
 
-/-!
-# `H`-expansions
-
-The `H`-expansion construction of Kurkofka–Planken (*A characterisation of all vertex-transitive
-finite graphs of connectivity < 5*, §2): an `H`-expansion of an `|V(H)|`-regular graph `G` is
-obtained from `G` by replacing every vertex `v` with a disjoint copy of `H` (the *fibre* `{v}×W`)
-and every edge `e = uv` with a single `Hᵤ–Hᵥ` edge `ê`, so that `ê₁` and `ê₂` share no ends for
-every two `e₁ ≠ e₂ ∈ E(G)`.
-
-Two design points, faithful to the paper:
-
-* The base graph's regularity is a single *hypothesis* of the structure
-  (`hreg : G.IsRegularOfDegree (Fintype.card W)`), not a field: it is a side condition on `G`,
-  not data of the expansion. The degree is not tracked as a separate numeral `r` — it is just
-  the fibre size `Fintype.card W` (the paper's `|V(H)|`), the single source of truth.
-* The definition does **not** ask for a perfect matching. It only asks that every edge of `G` is
-  realised by at least one crossing edge (`cross_exists`) and that crossing edges share no ends
-  (`cross_disjoint`). The paper's "Thus, the edges `ê` form a perfect matching of the
-  `H`-expansion" is a *theorem* (`HExpansion.crossSubgraph_isPerfectMatching`), proved by
-  counting from `hreg`; so is the fact that crossing edges only live above edges of `G`
-  (`HExpansion.respects`).
-
-The counting argument (both theorems at once): fix a vertex `u` of `G` and, for each of its
-`|W|` neighbours `v`, pick the end in the fibre of `u` of a crossing edge realising `uv`. Since
-crossing edges share no ends, this is an injection of the `|W|` neighbours into the `|W|`
-vertices of the fibre — hence a bijection, so *every* vertex of the fibre lies on a crossing
-edge, and its unique crossing edge goes to the fibre of a `G`-neighbour.
-
-This is the single shared definition used by the connectivity development
-(`PROJECTS/4_tim_paper_1`, `PROBLEMS/P025`) and by the expansion ⇄ graph-decomposition bridge
--/
-
 universe u v
 
 variable {V : Type u} [Fintype V]
 
-/-- An `H`-**expansion** of a `|W|`-regular graph `G`: each vertex of `G` is blown up into a
-fibre `{v}×W` carrying a copy of `H` (`fibre_graph`); every edge of `G` is realised by at least
-one crossing edge (`cross_exists`); and crossing edges share no ends (`cross_disjoint`, stated
-as: each vertex has at most one neighbour outside its own fibre).
-
-By counting, the crossing edges automatically form a perfect matching of the expansion
-(`crossSubgraph_isPerfectMatching`) and lie only above edges of `G` (`respects`). -/
+/-- An `H`-**expansion** of a `|W|`-regular graph `G` (Kurkofka–Planken, §2): each vertex `v` of
+`G` is replaced by a copy of `H` on the fibre `{v} × W`, every edge of `G` is realised by at least
+one crossing edge, and crossing edges share no ends (each vertex has at most one neighbour outside
+its own fibre). -/
 structure HExpansion
     (G : SimpleGraph V) [DecidableRel G.Adj]
     {W : Type v} [Fintype W] (H : SimpleGraph W)
@@ -72,13 +37,6 @@ def crossSubgraph : X.expandedGraph.Subgraph where
   edge_vert _ := Set.mem_univ _
   symm := ⟨fun {_ _} h => ⟨h.1.symm, h.2.symm⟩⟩
 
-/-! ### Building expansions from matching data
-
-The paper's construction, packaged: to build an `H`-expansion it suffices to choose, for every
-edge `uv` of `G`, the fibre coordinates of its crossing edge `ê` — `m u v _` for the end in the
-fibre of `u` and `m v u _` for the end in the fibre of `v` — such that at each vertex distinct
-neighbours receive distinct coordinates (so the `ê` share no ends). -/
-
 /-- The relation generating the expanded graph built from matching data `m`: a copy of `H`
 inside each fibre, plus the single crossing edge `(u, m u v _)–(v, m v u _)` above every edge
 `uv` of `G`. -/
@@ -101,8 +59,8 @@ theorem matchingRel_cross {m : ∀ u v, G.Adj u v → W} {a c : V} {x y : W} (hn
   · exact ⟨hca.symm, hx, hy⟩
 
 variable (G H hreg) in
-/- Build an `H`-expansion from the paper's raw data: for every edge `uv` of `G` a choice of
-matched fibre coordinates, injective at every vertex. -/
+/-- Build an `H`-expansion from matching data: for every edge `uv` of `G`, the fibre coordinates
+`m u v _` and `m v u _` of the ends of its crossing edge, injective in `v` at every vertex `u`. -/
 def ofMatchingData (m : ∀ u v, G.Adj u v → W)
     (hm : ∀ u v v' (h : G.Adj u v) (h' : G.Adj u v'), m u v h = m u v' h' → v = v') :
     HExpansion G H hreg where
@@ -139,9 +97,8 @@ def ofMatchingData (m : ∀ u v, G.Adj u v → W)
 
 end HExpansion
 
-/-- `Gexp` is an `H`-expansion of `G`: `G` is `|W|`-regular and `Gexp` is the expanded graph of
-some `HExpansion`. The fibre size is `Fintype.card W` (the paper's `|V(H)|`); the regularity
-condition is part of the assertion (the `∃`-bound proof is a conjunct). -/
+/-- `Gexp` is an `H`-expansion of `G`: `G` is `|W|`-regular (this is part of the assertion) and
+`Gexp` is the expanded graph of some `HExpansion`. -/
 def IsExpansion {W : Type v} [Fintype W] (H : SimpleGraph W)
     (G : SimpleGraph V) [DecidableRel G.Adj]
     (Gexp : SimpleGraph (V × W)) : Prop :=

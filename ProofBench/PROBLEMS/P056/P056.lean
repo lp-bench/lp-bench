@@ -6,11 +6,9 @@ open Multigraph
 
 universe u v
 
-/-- A `3`-connected cubic graph of girth at least `16` on `n` vertices has
-`2 ^ Ω(n)` circuit double covers (Hušek–Šámal, Theorem 1.8): one exponential
-rate works for every sufficiently large such graph.  Unlike `P055`, no
-`3`-edge-colorability is assumed, so this covers high-girth snarks — the
-historically presumed hard case of the cycle double cover conjecture. -/
+/-- There are `c > 0` and `n₀` such that every simple `3`-connected cubic graph
+of girth at least `16` on `n ≥ n₀` vertices has at least `2 ^ (c n)` circuit
+double covers. Theorem 1.8 of Hušek–Šámal, arXiv:2607.24724. -/
 theorem P056 :
     ∃ c : ℝ, 0 < c ∧ ∃ n₀ : ℕ,
       ∀ {V : Type u} {E : Type v} [Fintype V] [Fintype E]

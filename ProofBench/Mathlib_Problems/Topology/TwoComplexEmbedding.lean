@@ -104,6 +104,7 @@ def parseTriangles : ℕ → List ℕ → Option (List TwoComplexTriangle × Lis
       some (⟨a, b, c⟩ :: triangles, rest)
   | _ + 1, _ => none
 
+/-- Parsing the fields of a list of edges recovers the list. -/
 @[simp] theorem parseEdges_edgeFields (edges : List TwoComplexEdge) (rest : List ℕ) :
     parseEdges edges.length (edgeFields edges ++ rest) = some (edges, rest) := by
   induction edges with
@@ -112,6 +113,7 @@ def parseTriangles : ℕ → List ℕ → Option (List TwoComplexTriangle × Lis
       rcases e with ⟨lo, hi⟩
       simp [parseEdges, edgeFields, ih]
 
+/-- Parsing the fields of a list of triangles recovers the list. -/
 @[simp] theorem parseTriangles_triangleFields
     (triangles : List TwoComplexTriangle) (rest : List ℕ) :
     parseTriangles triangles.length (triangleFields triangles ++ rest) =
@@ -131,6 +133,7 @@ def ofFields : List ℕ → Option FiniteTwoComplex
       some ⟨vertexCount, edges, triangles⟩
   | _ => none
 
+/-- A two-complex is recovered from its numerical serialization. -/
 @[simp] theorem ofFields_fields (K : FiniteTwoComplex) : ofFields K.fields = some K := by
   rcases K with ⟨vertexCount, edges, triangles⟩
   simp [fields, ofFields, show parseTriangles triangles.length (triangleFields triangles) =
@@ -145,6 +148,7 @@ def decodeFields (symbols : List (Option Bool)) : List ℕ :=
   (symbols.splitOn none).map fun field ↦
     Computability.decodeNat (field.filterMap id)
 
+/-- Decoding inverts the binary encoding of a nonempty list of fields. -/
 @[simp] theorem decodeFields_encodeFields {numbers : List ℕ} (h : numbers ≠ []) :
     decodeFields (encodeFields numbers) = numbers := by
   rw [decodeFields, encodeFields, List.splitOn_intercalate]
@@ -174,8 +178,9 @@ def encoding : Computability.Encoding FiniteTwoComplex (Option Bool) where
     rw [decodeFields_encodeFields (by simp [fields])]
     exact ofFields_fields K
 
-/-- A deterministic decision procedure for the promised embedding problem
-whose running time is eventually bounded by a constant multiple of `bound`. -/
+/-- Embeddability in `ℝ³` is decidable in time `O(bound)` under a promise: a Turing machine
+computes a function that answers whether `K` embeds in `ℝ³` for every valid `K` with trivial
+first homology, in time at most `C * bound n` on inputs of length `n ≥ N`. -/
 def EmbeddabilityInTime (bound : ℕ → ℕ) : Prop :=
   ∃ answer : FiniteTwoComplex → Bool,
     (∀ K, K.Valid → K.HasTrivialFirstHomology →
@@ -184,6 +189,5 @@ def EmbeddabilityInTime (bound : ℕ → ℕ) : Prop :=
         Computability.encodeBool answer,
       ∃ C N : ℕ, 0 < C ∧
         ∀ n, N ≤ n → machine.time n ≤ C * bound n
-
 
 end FiniteTwoComplex

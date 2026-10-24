@@ -5,17 +5,20 @@ open Function Matroid
 
 variable {α : Type*} (M : Matroid α) (X : Set α)
 
-/- Complex-representable matroid -/
+/-- `M` is complex-representable: it has a representation in some complex vector space. -/
 def IsComplexRepresentable (M : Matroid α) : Prop :=
   ∃ (W : Type) (_ : AddCommGroup W) (_ : Module ℂ W),
     Nonempty (M.Rep ℂ W)
 
-structure FlatsInDirectSum (F₁ F₂ : Set α) where
-  flat₁ := M.IsFlat F₁
-  flat₂ := M.IsFlat F₂
-  flat_union := M.IsFlat (F₁ ∪ F₂)
-  rank_cond := M.eRk (F₁ ∪ F₂) = M.eRk F₁ + M.eRk F₂
+/-- `F₁` and `F₂` are flats of `M` in direct sum: their union is a flat whose rank is the sum
+of their ranks. -/
+structure FlatsInDirectSum (F₁ F₂ : Set α) : Prop where
+  flat₁ : M.IsFlat F₁
+  flat₂ : M.IsFlat F₂
+  flat_union : M.IsFlat (F₁ ∪ F₂)
+  rank_cond : M.eRk (F₁ ∪ F₂) = M.eRk F₁ + M.eRk F₂
 
+/-- A point of `M` is nonempty. -/
 lemma IsPoint.nonempty (h : IsPoint M X) : X.Nonempty := by
   unfold IsPoint at h
   by_contra h_c
@@ -23,6 +26,7 @@ lemma IsPoint.nonempty (h : IsPoint M X) : X.Nonempty := by
   subst h_c
   simp at h
 
+/-- In a simple matroid the points are exactly the singletons of ground-set elements. -/
 theorem isPoint_iff_singleton [Simple M] {P : Set α} :
     IsPoint M P ↔ ∃ p ∈ M.E, P = {p} := by
   constructor
@@ -40,27 +44,31 @@ theorem isPoint_iff_singleton [Simple M] {P : Set α} :
 
 variable {ι : Type*} [Fintype ι]
 
+/-- The direct sum of the restrictions of `M` to a pairwise disjoint family of sets. -/
 def directSumOfSubsets (flats : ι → Set α)
     (h_disj : Pairwise (Disjoint on fun i ↦ flats i))
     := Matroid.disjointSigma (fun i ↦ M.restrict (flats i))
     (by simpa [Matroid.restrict] using h_disj)
 
-/- A rank-k flat with exactly k points (elementary flat) -/
+/-- An elementary flat: a flat whose number of points equals its rank. -/
 structure IsElementaryFlat (F : Set α) where
   isFlat : M.IsFlat F
   pointCount : Nat.card {p // IsPoint M p ∧ p ⊆ F} = M.eRk F
 
+/-- `M` has a two-point line: a line containing exactly two points. -/
 def HasTwoPointLine := ∃ (L : Set α), IsElementaryFlat M L ∧ M.IsLine L
 
-/- A family of matroids, one for each possible ground set type. -/
+/-- A family of matroids: a set of matroids on each ground type. -/
 def MatroidFamily := ∀ (α : Type), Set (Matroid α)
 
-/- A matroid family is minor-closed if for all M in the family, for all N,
-  if N is isomorphic to a minor of M, then N is also in the family. -/
+/-- A matroid family is minor-closed if it contains every matroid isomorphic to a minor of one
+of its members. -/
 def IsMinorClosed (ℳ : MatroidFamily) : Prop :=
   ∀ (α β : Type) (M : Matroid α) (N : Matroid β),
     M ∈ ℳ α → IsoMinor N M → N ∈ ℳ β
 
+/-- An ordinary flat of `M`: a flat `carrier = pt ∪ hyperplane`, where `pt` is a point, the
+flats `pt` and `hyperplane` are in direct sum, and `hyperplane` has rank one less than `carrier`. -/
 structure OrdinaryFlat where
   (carrier : Set α)
   (isFlat : M.IsFlat carrier)
@@ -71,55 +79,13 @@ structure OrdinaryFlat where
   (directSum : FlatsInDirectSum M pt hyperplane)
   (eq : carrier = pt ∪ hyperplane)
 
-
-/-
-Every rank-4 complex-representable matroid has a two-point line.
--/
-/- The family of all complex-representable matroids. -/
+/-- The family of all complex-representable matroids. -/
 def ComplexRepresentableFamily : MatroidFamily :=
   fun α => {M : Matroid α | IsComplexRepresentable M}
 
-theorem P015 {k : ℕ} (hk : 2 ≤ k) {α : Type} (M : Matroid α)
+/-- Every complex-representable matroid of rank at least `4(k - 1)`, `k ≥ 2`, has an ordinary
+flat of rank `k` (Geelen–Kroeker, arXiv:2212.03307). -/
+theorem P015 {k : ℕ} (hk : 2 ≤ k) {α : Type} (M : Matroid α) [M.Finite]
     (hM : IsComplexRepresentable M) (hrank : M.eRank ≥ 4 * (k - 1)) :
     ∃ F : OrdinaryFlat M, M.eRk F.carrier = k := by
   sorry
-
-
-
--- UNUSED
-/-
-def isElem_iff_Ord [Simple M] (F : Set α) :
-IsElementaryFlat M F ≃ IsOrdinaryFlat M F := by sorry
-
-
-/- Ordinary Flat - Structure with explicit point and hyperplane -/
-structure IsOrdinaryFlat (F : Set α) where
-  isFlat : M.IsFlat F
-  pt : Set α
-  hyperplane : Set α
-  isPoint : IsPoint M pt
-  hyper_rank : M.eRk hyperplane = (M.eRk F - 1)
-  directSum : FlatsInDirectSum M pt hyperplane
-  eq : F = pt ∪ hyperplane
-
-lemma IsElementaryFlat_iff_directsum_pts (F : Set α) :
-  IsElementaryFlat M F <-> ∃ (pts : Fin k → Set α) (h_disj : Pairwise (Disjoint on pts)),
-    (∀ i, IsPoint M (pts i)) ∧
-    M.restrict F = directSumOfSubsets M pts h_disj := by
-
-    sorry
-
-theorem directSumOfFlats_eq_restrict (flats : ι → Set α)
-    (h_flat : ∀ i, M.IsFlat (flats i))
-    (h_disj : Pairwise (Disjoint on flats))
-    (h_rank : M.eRk (⋃ i, flats i) = ∑ i, M.eRk (flats i)) :
-    directSumOfSubsets M flats h_disj = M.restrict (⋃ i, flats i) := by
-  unfold directSumOfSubsets
-  ext I
-  · sorry
-  · sorry
-
-def FlatDirectSum (F₁ F₂ : Set α) (_ : FlatsInDirectSum M F₁ F₂) : Set α :=
-  F₁ ∪ F₂
-
--/

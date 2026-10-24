@@ -8,68 +8,6 @@ import Mathlib.Probability.Distributions.Poisson.Basic
 import Mathlib.Probability.Distributions.Uniform
 import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
-/-!
-# P045: The full rank condition for sparse random matrices
-
-This file formalizes the random matrix model and the main theorem of
-
-  A. Coja-Oghlan, P. Gao, M. Hahn-Klimroth, J. Lee, N. Müller, M. Rolvien,
-  *The full rank condition for sparse random matrices*, arXiv:2112.14090.
-
-## The paper's dependency graph
-
-* Section 1.2.1, the random matrix model: degree laws `d` (variable nodes) and
-  `k ≥ 3` (check nodes) with `E[d^{2+η}] + E[k^{2+η}] < ∞`, the gcds `𝔡`, `𝔨` of
-  their supports, a row count `m ~ Po(d n / k)`, the conditioning on the degree
-  sums agreeing (1.1), the uniform simple bipartite Tanner graph `𝔾_n(d, k)` with
-  these degrees, and the matrix `𝔸 = 𝔸_n(d, k, χ)` with independent coefficients
-  `χ ∈ F_q^*` on its edges; the function `Φ` of (1.2) and the full rank
-  condition (1.3);
-* Definition 3.1: relations, frozen coordinates, and free matrices;
-* Proposition 2.1: the nullity estimate for a matrix with extra ternary rows
-  (Aizenman-Sims-Starr coupling, Sections 4 and 8);
-* Proposition 2.2: equitability and the truncated first moment (Section 5);
-* Proposition 2.3: the bounded nonnegative basis of the frequency lattice
-  (Section 6);
-* Proposition 2.4: the sharp truncated second moment (Section 7);
-* **Theorem 1.1**: the second-moment deduction of full row rank (Section 2.4);
-* Corollary 1.2: transfer from a finite field to rational zero-one matrices.
-
-## What is formalized here
-
-The target of the problem is **Theorem 1.1**, stated as `P102`
-and proved by `sorry`, the single `sorry` of the file.  Everything else is
-proved outright:
-
-* the deterministic linear algebra of the first version of this file (full row
-  rank, solvability, right inverses, the counting of solvable right-hand sides
-  over a finite field used in Section 2.1), kept unchanged;
-* `NatLaw`, `DegreeParameters`, `phi` (1.2) and `StrictPhiCondition` (1.3),
-  kept unchanged;
-* `piLaw`, `NatLaw.toPMF`, `poissonLaw`: independent copies of a law, the
-  probability mass function of a `NatLaw`, and the Poisson law;
-* `DegreeProfile`, `degreeProfileLaw`, `DegreeProfile.Admissible`,
-  `conditionedProfileLaw`: the degree data `(d_i)`, `m`, `(k_i)` and its
-  conditioning on (1.1) and on the existence of a simple bipartite graph;
-* `bipartiteGraphsWithDegrees`, `uniformBipartiteGraph`, `TannerGraph`,
-  `tannerGraphLaw`: the uniform simple bipartite graph `𝔾_n(d, k)`;
-* `coefficientMatrix`, `randomMatrixLaw`: the random matrix `𝔸_n(d, k, χ)`.
-
-## Conventions
-
-* The number of rows is random, so a sample is a `MatrixSample`: a row count
-  together with a matrix with that many rows.
-* Conditioning on an event of probability zero and choosing a uniform element of
-  an empty set are given junk values (the unconditioned law and the empty
-  graph); the paper shows the conditioning event has probability `Ω(n^{-1/2})`
-  for `n` divisible by `𝔨`, and the theorem is stated along multiples of `𝔨`.
-* The coefficient law `χ` is an arbitrary law on the nonzero elements of the
-  field, as in the paper; the deterministic choice `χ = 1` gives the zero-one
-  biadjacency matrix of Corollary 1.2.
-* Full row rank is defined by solvability of every right-hand side, exactly as
-  used in Section 2.1 of the paper.
--/
-
 open Filter MeasureTheory
 open scoped BigOperators ENNReal Topology
 
@@ -77,10 +15,8 @@ noncomputable section
 
 namespace SparseRandomMatrixFullRank
 
-/-! ## Deterministic matrices and linear systems -/
-
-/-- An `m` by `n` matrix has full row rank when every right-hand side in
-`F^m` is represented by a matrix-vector product. -/
+/-- An `m` by `n` matrix has full row rank when every right-hand side in `F^m` is a
+matrix-vector product `A x`, i.e. every linear system `A x = y` is solvable. -/
 def HasFullRowRank {F m n : Type*} [Field F] [Fintype n]
     (A : Matrix m n F) : Prop :=
   Function.Surjective A.mulVec
@@ -90,6 +26,7 @@ def LinearSystemSolvable {F m n : Type*} [Field F] [Fintype n]
     (A : Matrix m n F) (y : m -> F) : Prop :=
   Exists fun x : n -> F => A.mulVec x = y
 
+/-- Full row rank means that every linear system `A x = y` is solvable. -/
 theorem hasFullRowRank_iff_all_systems_solvable
     {F m n : Type*} [Field F] [Fintype n] (A : Matrix m n F) :
     HasFullRowRank A <-> forall y : m -> F, LinearSystemSolvable A y := by
@@ -141,15 +78,13 @@ theorem rank_eq_card_rows_of_linearIndependent
     A.rank = Fintype.card m :=
   hA.rank_matrix
 
-/-! ## Counting solvable right-hand sides over a finite field -/
-
-/-- The image of `A` is precisely the vector space of solvable right-hand
-sides.  Keeping it as a submodule lets Mathlib count it by its dimension. -/
+/-- The subspace of solvable right-hand sides: the image of `A`. -/
 def SolvableRightHandSideSpace
     {F m n : Type*} [Field F] [Fintype n] (A : Matrix m n F) :
     Submodule F (m -> F) :=
   A.mulVecLin.range
 
+/-- `y` lies in the image of `A` exactly when `A x = y` is solvable. -/
 theorem mem_solvableRightHandSideSpace_iff
     {F m n : Type*} [Field F] [Fintype n]
     (A : Matrix m n F) (y : m -> F) :
@@ -167,10 +102,8 @@ theorem card_solvableRightHandSideSpace
     (K := F) (V := SolvableRightHandSideSpace A)]
   rfl
 
-/- If `A` is not full row rank, multiplying the number of solvable
-right-hand sides by the field order still does not exceed the total number of
-right-hand sides.  Equivalently, a uniformly chosen right-hand side is
-solvable with probability at most `1 / |F|`. -/
+/-- If `A` does not have full row rank, at most a fraction `1 / |F|` of the right-hand sides
+are solvable. -/
 theorem card_solvableRightHandSideSpace_mul_fieldOrder_le
     {F m n : Type*} [Field F] [Fintype F] [Fintype m] [Fintype n]
     (A : Matrix m n F) (hA : Not (HasFullRowRank A)) :
@@ -190,12 +123,8 @@ theorem card_solvableRightHandSideSpace_mul_fieldOrder_le
     _ <= Nat.card F ^ Fintype.card m :=
       pow_le_pow_right' Nat.card_pos (Nat.succ_le_iff.mpr hrank_lt)
 
-/-! ## Degree distributions and generating functions -/
-
-/-- A natural-number probability distribution represented by real masses.
-The second-moment summability assumption is the part of the paper's
-`2 + eta` moment condition needed to define the displayed generating
-function and its first derivative on `[0,1]`. -/
+/-- A probability distribution on `ℕ` (a degree law), given by real masses, with finite
+second moment; the paper's `2 + η` moment condition is a hypothesis of the theorem. -/
 structure NatLaw where
   mass : Nat -> Real
   mass_nonnegative : forall r, 0 <= mass r
@@ -210,8 +139,8 @@ namespace NatLaw
 def pgf (X : NatLaw) (z : Real) : Real :=
   tsum fun r => X.mass r * z ^ r
 
-/-- The termwise first derivative of the probability generating function.
-Writing the index as `r+1` avoids a truncated natural subtraction. -/
+/-- The termwise derivative `∑ (r + 1) P(X = r + 1) z^r` of the probability generating
+function. -/
 def pgfDeriv (X : NatLaw) (z : Real) : Real :=
   tsum fun r => X.mass (r + 1) * (r + 1 : Real) * z ^ r
 
@@ -219,9 +148,7 @@ def pgfDeriv (X : NatLaw) (z : Real) : Real :=
 def mean (X : NatLaw) : Real :=
   tsum fun r => X.mass r * r
 
-/-- `g` is the greatest common divisor of the support of `X`.
-This relational form works for infinite support and states both universal
-properties of a greatest common divisor. -/
+/-- `g` is the greatest common divisor of the (possibly infinite) support of `X`. -/
 def IsSupportGCD (X : NatLaw) (g : Nat) : Prop :=
   0 < g /\
     (forall r, X.mass r != 0 -> Dvd.dvd g r) /\
@@ -234,12 +161,8 @@ def SupportedAtLeast (X : NatLaw) (lower : Nat) : Prop :=
 
 end NatLaw
 
-/-! ## The paper's analytic parameter -/
-
-/-- The row- and column-degree data in Theorem 1.1.
-
-`variableDegree` is the paper's `d`, while `checkDegree` is its `k`.
-The latter is supported on values at least three. -/
+/-- The degree laws of Theorem 1.1: `variableDegree` is the paper's `d` (column degrees,
+with support gcd `𝔡`) and `checkDegree` is its `k` (row degrees, supported on `k ≥ 3`). -/
 structure DegreeParameters where
   variableDegree : NatLaw
   checkDegree : NatLaw
@@ -266,10 +189,8 @@ def StrictPhiCondition (P : DegreeParameters) : Prop :=
 
 end DegreeParameters
 
-/-! ## Random matrix samples and asymptotic events -/
-
-/-- A sample at size `n`.  The number of rows is random in the paper, so it is
-stored as part of the sample. -/
+/-- A matrix over `F` with `n` columns; the number of rows is random, so it is part of the
+sample. -/
 structure MatrixSample (F : Type*) (n : Nat) where
   rowCount : Nat
   matrix : Matrix (Fin rowCount) (Fin n) F
@@ -282,8 +203,8 @@ def FullRowRankEvent {F : Type*} [Field F] {n : Nat}
     (sample : MatrixSample F n) : Prop :=
   HasFullRowRank sample.matrix
 
-/-- A sequence of events occurs with high probability when its real-valued
-probability tends to one. -/
+/-- A sequence of events occurs with high probability (a.a.s.) when its probability tends
+to one. -/
 def AsymptoticallyAlmostSurely (probability : Nat -> Real) : Prop :=
   Tendsto probability atTop (nhds 1)
 
@@ -297,19 +218,16 @@ def FullRowRankWithHighProbability {F : Type*} [Field F]
     (law : forall n : Nat, Measure (MatrixSample F n)) : Prop :=
   AsymptoticallyAlmostSurely fun n => fullRowRankProbability (law n)
 
+/-- `AsymptoticallyAlmostSurely` depends only on the values of the probabilities. -/
 theorem asymptoticallyAlmostSurely_congr
     {p q : Nat -> Real} (h : forall n, p n = q n) :
     AsymptoticallyAlmostSurely p <-> AsymptoticallyAlmostSurely q := by
   cases funext h
   rfl
 
-/-- The deterministic squeeze argument used at the end of Section 2.1.
-
-Here `rankProbability n` is the probability of full row rank and
-`solvabilityProbability n` is the probability that an independent random
-right-hand side is solvable.  If a non-full-rank matrix contributes at most a
-fixed proportion `c < 1` to the latter probability, asymptotic solvability
-forces asymptotic full row rank. -/
+/-- If `s n ≤ r n + c (1 - r n)` with `c < 1`, `r n ≤ 1` and `s n → 1`, then `r n → 1`
+(`r`: probability of full row rank, `s`: probability that a random right-hand side is
+solvable). -/
 theorem tendsto_one_of_solvability_gap
     (c : Real) (hc : c < 1)
     (rankProbability solvabilityProbability : Nat -> Real)
@@ -336,9 +254,7 @@ theorem tendsto_one_of_solvability_gap
     nlinarith [hcomparison n]
   · exact hrank_le_one
 
-/-- Finite-field specialization of `tendsto_one_of_solvability_gap`.  The
-counting lemma above supplies the gap `1 / q` whenever the matrix is not full
-row rank. -/
+/-- The case `c = 1 / q` of `tendsto_one_of_solvability_gap`, for `q > 1`. -/
 theorem tendsto_one_of_finiteField_solvability_gap
     (q : Nat) (hq : 1 < q)
     (rankProbability solvabilityProbability : Nat -> Real)
@@ -356,14 +272,11 @@ theorem tendsto_one_of_finiteField_solvability_gap
     simpa [div_eq_mul_inv, mul_comm] using hcomparison n
   · exact hsolvable
 
-/-- The arithmetic side condition in Theorem 1.1, stated for an arbitrary
-finite field rather than choosing a concrete presentation of `F_q`. -/
+/-- The side condition of Theorem 1.1: the order `q = |F|` of the finite field is coprime
+to the gcd `𝔡` of the support of `d`. -/
 def FieldOrderCoprime {F : Type*} [Fintype F]
     (P : DegreeParameters) : Prop :=
   Nat.Coprime (Fintype.card F) P.variableSupportGCD
-
-
-/-! ## Independent copies and the Poisson law -/
 
 /-- `n` independent copies of a law, as a law on `Fin n -> α`: the copies are
 drawn one after the other. -/
@@ -383,8 +296,6 @@ def NatLaw.toPMF (X : NatLaw) : PMF Nat := by
 def poissonLaw (r : NNReal) : PMF Nat :=
   (ProbabilityTheory.poissonMeasure r).toPMF
 
-/-! ## The random Tanner graph (Section 1.2.1) -/
-
 /-- The degree data of Section 1.2.1: the variable degrees `d_1, …, d_n`, the
 row count `m` and the check degrees `k_1, …, k_m`. -/
 structure DegreeProfile (n : Nat) where
@@ -393,7 +304,7 @@ structure DegreeProfile (n : Nat) where
   checkDegrees : Fin rowCount -> Nat
 
 /-- The unconditioned law of the degree data: independent variable degrees with
-law `d`, an independent row count `m ~ Po(d n / k)`, and independent check
+law `d`, an independent row count `m ~ Po(E[d] n / E[k])`, and independent check
 degrees with law `k`. -/
 def degreeProfileLaw (P : DegreeParameters) (n : Nat) : PMF (DegreeProfile n) :=
   (piLaw P.variableDegree.toPMF n).bind fun d =>
@@ -417,9 +328,8 @@ def DegreeProfile.Admissible {n : Nat} (D : DegreeProfile n) : Prop :=
     (bipartiteGraphsWithDegrees D).Nonempty
 
 open scoped Classical in
-/-- The degree data conditioned on admissibility.  Conditioning is meaningful
-when the event has positive probability (the paper shows it is `Ω(n^{-1/2})` for
-`n` divisible by `𝔨`); otherwise the unconditioned law is the junk value. -/
+/-- The degree data conditioned on admissibility; if admissibility has probability zero,
+the unconditioned law is the junk value. -/
 def conditionedProfileLaw (P : DegreeParameters) (n : Nat) : PMF (DegreeProfile n) :=
   if h : ∃ D ∈ {D : DegreeProfile n | D.Admissible}, D ∈ (degreeProfileLaw P n).support then
     (degreeProfileLaw P n).filter {D | D.Admissible} h
@@ -445,8 +355,6 @@ def tannerGraphLaw (P : DegreeParameters) (n : Nat) : PMF (TannerGraph n) :=
   (conditionedProfileLaw P n).bind fun D =>
     (uniformBipartiteGraph D).map fun B => ⟨D.rowCount, B⟩
 
-/-! ## The random matrix `𝔸_n(d, k, χ)` -/
-
 /-- Independent coefficients with law `χ` on the edges of a Tanner graph: the
 matrix `𝔸_{ij} = χ_{ij} 𝟙{a_i x_j ∈ E(𝔾)}`. -/
 def coefficientMatrix {F : Type*} [Zero F] (χ : PMF F) {n : Nat} (G : TannerGraph n) :
@@ -454,19 +362,16 @@ def coefficientMatrix {F : Type*} [Zero F] (χ : PMF F) {n : Nat} (G : TannerGra
   (piLaw (piLaw χ n) G.rowCount).map fun c =>
     ⟨G.rowCount, Matrix.of fun i j => if G.adj i j then c i j else 0⟩
 
-/-- The law of the random matrix `𝔸 = 𝔸_n(d, k, χ)` of Section 1.2.1. -/
+/-- The law of the random matrix `𝔸 = 𝔸_n(d, k, χ)` of Section 1.2.1, for a law `χ` of the
+nonzero coefficients; `χ = 1` gives the zero-one biadjacency matrix. -/
 def randomMatrixLaw (F : Type*) [Zero F] (P : DegreeParameters) (χ : PMF F) (n : Nat) :
     PMF (MatrixSample F n) :=
   (tannerGraphLaw P n).bind (coefficientMatrix χ)
 
-/-! ## The main theorem -/
-
-/-- **Theorem 1.1** (Coja-Oghlan, Gao, Hahn-Klimroth, Lee, Müller, Rolvien).
-Let `d` and `k ≥ 3` be degree laws with `E[d^{2+η}] + E[k^{2+η}] < ∞` for some
-`η > 0`, let `𝔡` and `𝔨` be the gcds of their supports, let `q = |F|` be coprime
-to `𝔡`, and let `χ` be a law on `F ∖ {0}`.  If `Φ(z) < Φ(0)` for all `0 < z ≤ 1`,
-condition (1.3), then the random matrix `𝔸 = 𝔸_n(d, k, χ)` has full row rank
-over `F` with high probability as `n → ∞` along multiples of `𝔨`. -/
+/-- **Theorem 1.1** of Coja-Oghlan–Gao–Hahn-Klimroth–Lee–Müller–Rolvien, arXiv:2112.14090:
+if `E[d^{2+η}], E[k^{2+η}] < ∞`, `q = |F|` is coprime to `𝔡`, `χ` lives on `F ∖ {0}` and
+`Φ(z) < Φ(0)` for `0 < z ≤ 1`, then `𝔸_n(d, k, χ)` has full row rank over `F` with high
+probability as `n → ∞` along the multiples of the support gcd `𝔨` of `k`. -/
 theorem P102 (F : Type*) [Field F] [Fintype F]
     (P : DegreeParameters) (χ : PMF F) (hχ : ∀ x ∈ χ.support, x ≠ 0)
     (η : Real) (hη : 0 < η)
@@ -477,8 +382,6 @@ theorem P102 (F : Type*) [Field F] [Fintype F]
     AsymptoticallyAlmostSurely fun t =>
       fullRowRankProbability (randomMatrixLaw F P χ (kgcd * t)).toMeasure := by
   sorry
-
-/-! ## Direct corollaries -/
 
 /-- **Theorem 1.1 for the zero-one matrix** `χ = 1`: the biadjacency matrix of
 the random Tanner graph, read over `F`, has full row rank with high

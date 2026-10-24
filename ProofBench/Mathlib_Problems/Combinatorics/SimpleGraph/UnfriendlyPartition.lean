@@ -9,23 +9,23 @@ open scoped Cardinal
 
 variable {V : Type u} (G : SimpleGraph V)
 
-/- Neighbours of `v` mapped to value `b` by `f`. -/
+/-- The neighbours of `v` that `f` maps to the value `b`. -/
 def NeighColored {β : Type*} (f : V → β)
     (v : V) (b : β) : Type u := ↥(G.neighborSet v ∩ f ⁻¹' {b})
 
-/- A partial partition `f : V → Option Bool` is unfriendly at `x` when `x` is assigned
-some colour `b` and has at least as many neighbours assigned the opposite colour
-`!b` as assigned `b` -/
+/-- A partial partition `f : V → Option Bool` is unfriendly at `v` when `v` is assigned
+some side `b` and has at least as many neighbours (as a cardinal) assigned the opposite
+side `!b` as assigned `b`; unassigned neighbours do not count. -/
 def UnfriendlyAt (f : V → Option Bool)
     (v : V) : Prop :=
   ∃ b : Bool, f v = some b ∧
     #(NeighColored G f v (some b)) ≤ #(NeighColored G f v (some (!b)))
 
-/- The empty partial partition. -/
+/-- The empty partial partition: no vertex is assigned a side. -/
 def emptyPartition (V : Type u) : V → Option Bool :=
   fun _ => none
 
-/- A partial partition has finite domain when its set of assigned vertices is
+/-- A partial partition has finite domain when its set of assigned vertices is
 finite. -/
 def HasFiniteDomain (f : V → Option Bool) : Prop :=
   {v : V | f v ≠ none}.Finite
@@ -38,21 +38,19 @@ def IsPartition (f : V → Option Bool) : Prop :=
 def Extends (f g : V → Option Bool) : Prop :=
   ∀ v b, f v = some b → g v = some b
 
-/-- A partial partition is an unfriendly partition when it is total and
-unfriendly at every vertex.  It reuses the single top-level `UnfriendlyAt`
-(a partial partition is already a `V → Option Bool`). -/
+/-- An unfriendly partition: unfriendly at every vertex (which forces every vertex
+to be assigned a side). -/
 def IsUnfriendlyPartition (f : V → Option Bool) : Prop :=
   ∀ x : V, UnfriendlyAt G f x
 
-/-! ## The `r`-partitioning game -/
-
-/- A legal response by Partitioner from position `f` to the challenged
-vertex `v`: a finite partial partition `g` extending `f` which is unfriendly at `v` -/
+/-- A legal response by Partitioner from position `f` to the challenged vertex `v`:
+a finite partial partition `g` extending `f` that is unfriendly at `v`. -/
 def IsLegalResponse (f g : V → Option Bool) (v : V) : Prop :=
   Extends f g ∧ HasFiniteDomain g ∧ UnfriendlyAt G g v
 
-/-  Partitioner has a winning strategy in the partitioning game from position
-`(f, α)`. Defined inductively over `α` -/
+/-- Partitioner has a winning strategy in the partitioning game from position `(f, α)`:
+for every vertex `v` and ordinal `β < α` named by Challenger there is a legal response `g`
+from which Partitioner wins at `(g, β)`. Defined by well-founded recursion on `α`. -/
 def PartitionerWins (f : V → Option Bool)
   (α : Ordinal.{v}) : Prop :=
   ∀ v : V, ∀ β : Ordinal.{v}, β < α →
@@ -71,8 +69,8 @@ theorem PartitionerWins.mono {G : SimpleGraph V}
 
 variable {V : Type u} [Countable V] (G : SimpleGraph V)
 
-/-- The Scaled Unfriendly Partition Conjecture: for every ordinal `rho`,
-Partitioner has a winning strategy in the `rho`-partitioning game on every
-countable graph. -/
+/-- The Scaled Unfriendly Partition Conjecture for `G`: for every ordinal `r`, Partitioner
+has a winning strategy in the `r`-partitioning game on `G`, starting from the empty partial
+partition. -/
 def UnfriendlyPartGameConj : Prop :=
   ∀ r : Ordinal.{v}, PartitionerWins G (emptyPartition V) r

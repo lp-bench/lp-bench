@@ -4,7 +4,7 @@ open SimpleGraph
 
 universe u
 
-/-- **The tangle-decider conjecture** (Diestel--Hundertmark--Lemanczyk):
+/-- **The tangle-decider conjecture** (Diestel–Hundertmark–Lemanczyk 2019):
 every tangle in a finite graph is decided by majority vote by a set of
 vertices. -/
 theorem P066 :

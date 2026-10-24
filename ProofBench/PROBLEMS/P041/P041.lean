@@ -1,23 +1,6 @@
 import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Fintype.Basic
 
-/- ==============================================================================
-P041 — 3-SAT as an allocation-constraint system.
-
-The glossed-over combinatorial step of Lemma 3.2 in Carmesin–Turner,
-"Hardness of Planarity for Weak Temporal Sequences of 2-Connected Graphs"
-(arXiv:2512.06403): a 3-CNF formula is satisfiable if and only if the
-associated system of inequality (NEQ) and OR constraints on Boolean
-house-allocations has a solution.
-
-Encoding: over `m = 2·numVars` houses, house `2i` carries the literal `xᵢ`
-and house `2i + 1` carries `¬xᵢ`.  The NEQ constraints range over the
-complementary pairs `(2i, 2i+1)`; the OR constraints range over the triples
-of houses carrying the three literals of each clause.
-
-Known-true statement (no DISPROVE polarity).
-============================================================================== -/
-
 /-- A Boolean literal over `n` variables.  `positive = false` represents a
 negated literal. -/
 structure Literal (n : ℕ) where
@@ -97,9 +80,9 @@ def clauseTriples (F : ThreeCNF) :
       HouseIndex (2 * F.numVars)) :=
   F.clauses.toFinset.image fun C => (C.1.house, C.2.1.house, C.2.2.house)
 
-/-- **P041.**  A 3-CNF formula is satisfiable if and only if the associated
-system of complementary-pair NEQ constraints and clause OR constraints on
-Boolean allocations of the `2·numVars` houses has a solution. -/
+/-- A 3-CNF formula is satisfiable if and only if some Boolean allocation of its `2·numVars`
+houses satisfies the NEQ constraints on the complementary pairs and the OR constraints of its
+clauses: the combinatorial step of Lemma 3.2 of Carmesin–Turner, arXiv:2512.06403. -/
 theorem P041 (F : ThreeCNF) :
     F.Satisfiable ↔
       ∃ f : Allocation (2 * F.numVars),

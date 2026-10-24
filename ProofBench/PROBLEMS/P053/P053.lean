@@ -1,5 +1,3 @@
-/- Paper: When Joints Meet Extremal Graph Theory: Hypergraph Joints (Chao–Yu,
-arXiv:2410.06498). -/
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Data.Nat.Factorial.Basic
 import Mathlib.LinearAlgebra.Dimension.Finrank
@@ -11,11 +9,9 @@ namespace HypergraphJoints
 
 attribute [local instance] Classical.dec
 
-/-! ## Uniformly edge-colored multihypergraphs -/
-
 /--
-An edge-colored multihypergraph on `[d]`.  Edge indices retain multiplicity,
-so two indices may have the same support.
+An edge-colored multihypergraph on `[d]`, with `r` colors.  Edges are
+indexed, so two indices may carry the same vertex set.
 -/
 structure ColoredMultiHypergraph (d r : ℕ) where
   edgeCount : ℕ
@@ -24,7 +20,7 @@ structure ColoredMultiHypergraph (d r : ℕ) where
 
 /--
 Each color class is nonempty and simple, and color `i` consists of edges of
-cardinality `d-k_i`, as required in Definition 1.8.
+cardinality `d-k_i`, as in Definition 1.8.
 -/
 def IsUniformlyColored {d r : ℕ} (H : ColoredMultiHypergraph d r)
     (k : Fin r → ℕ) : Prop :=
@@ -33,7 +29,7 @@ def IsUniformlyColored {d r : ℕ} (H : ColoredMultiHypergraph d r)
       ∀ e f : Fin H.edgeCount,
         H.color e = H.color f → H.edge e = H.edge f → e = f
 
-/-- A nonnegative edge weight covers every vertex with total incident weight at least one. -/
+/-- A nonnegative edge weight gives every vertex total incident weight at least one. -/
 def WeightCovers {d r : ℕ} (H : ColoredMultiHypergraph d r)
     (w : Fin H.edgeCount → ℝ) : Prop :=
   (∀ e, 0 ≤ w e) ∧
@@ -50,6 +46,7 @@ noncomputable def subtotal {d r : ℕ} (H : ColoredMultiHypergraph d r)
     (w : Fin H.edgeCount → ℝ) (i : Fin r) : ℝ :=
   ∑ e : Fin H.edgeCount, if H.color e = i then w e else 0
 
+/-- Color subtotals of a covering weight are nonnegative. -/
 theorem subtotal_nonneg {d r : ℕ} {H : ColoredMultiHypergraph d r}
     {w : Fin H.edgeCount → ℝ} (hw : WeightCovers H w) (i : Fin r) :
     0 ≤ subtotal H w i := by
@@ -58,8 +55,6 @@ theorem subtotal_nonneg {d r : ℕ} {H : ColoredMultiHypergraph d r}
     split_ifs
     · exact hw.1 e
     · exact le_rfl
-
-/-! ## Affine flats and geometric `H`-joints -/
 
 /-- The ambient `d`-dimensional vector space over `𝔽`. -/
 abbrev Ambient (𝔽 : Type*) (d : ℕ) := Fin d → 𝔽
@@ -104,10 +99,9 @@ abbrev FlatSelection {d r : ℕ} (H : ColoredMultiHypergraph d r)
   (e : Fin H.edgeCount) → Fin (family.flatCount (H.color e))
 
 /--
-The selected flats form an `H`-joint at `p`.  The linear equivalence `L`,
-together with translation by `p`, is the invertible affine transformation in
-Definition 1.8.  Requiring the selected flat to contain `p` and to have the
-displayed direction uniquely specifies the corresponding affine image.
+The selected flats form an `H`-joint at `p` (Definition 1.8): with `A = p + L`,
+each selected flat is the image under `A` of the coordinate subspace spanned by
+the basis vectors outside its edge.
 -/
 def FormsHJointAt {d r : ℕ} (H : ColoredMultiHypergraph d r)
     {𝔽 : Type*} [Field 𝔽] {k : Fin r → ℕ}
@@ -120,7 +114,7 @@ def FormsHJointAt {d r : ℕ} (H : ColoredMultiHypergraph d r)
         F.direction =
           (coordinateComplementSubspace 𝔽 (H.edge e)).map L.toLinearMap
 
-/-- A finite geometric configuration whose listed points are exactly its `H`-joints. -/
+/-- An `H`-joints configuration: flat families and the finite set of all their `H`-joints. -/
 structure HJointConfiguration (d r : ℕ) (H : ColoredMultiHypergraph d r)
     (𝔽 : Type*) [Field 𝔽] (k : Fin r → ℕ) where
   family : ColoredFlatFamily d r 𝔽 k
@@ -132,6 +126,7 @@ structure HJointConfiguration (d r : ℕ) (H : ColoredMultiHypergraph d r)
 
 namespace HJointConfiguration
 
+/-- A point is listed exactly when it is an `H`-joint. -/
 @[simp] theorem mem_joints {d r : ℕ} {H : ColoredMultiHypergraph d r}
     {𝔽 : Type*} [Field 𝔽] {k : Fin r → ℕ}
     (C : HJointConfiguration d r H 𝔽 k) (p : Ambient 𝔽 d) :
@@ -141,8 +136,6 @@ namespace HJointConfiguration
   C.mem_joints_iff p
 
 end HJointConfiguration
-
-/-! ## The explicit constant and bound -/
 
 /-- The constant `C_(H,w)` from Theorem 1.12. -/
 noncomputable def jointConstant {d r : ℕ}
@@ -162,12 +155,10 @@ noncomputable def flatFamilyProduct {d r : ℕ}
   ∏ i : Fin r,
     Real.rpow (C.family.flatCount i : ℝ) (subtotal H w i)
 
-/-! ## Main theorem -/
-
 /--
-**Theorem 1.12 (Chao–Yu, simple `H`-joints).**  The number of joints in
-every finite `H`-joints configuration is at most
-`C_(H,w) · |F₁|^w̄₁ ⋯ |Fᵣ|^w̄ᵣ`.
+For every covering weight `w`, an `H`-joints configuration has at most
+`C_(H,w) · |F₁|^w̄₁ ⋯ |Fᵣ|^w̄ᵣ` joints.
+Theorem 1.12 (simple `H`-joints) of Chao–Yu, arXiv:2410.06498.
 -/
 theorem P053
     {d r : ℕ} (H : ColoredMultiHypergraph d r)

@@ -3,8 +3,9 @@ import ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.Connectivity.Vertex
 
 open Multigraph
 
-/-- A `2`-connected, properly `3`-edge-coloured cubic graph on `n` vertices
-has at least `2 ^ (n / 2 - 1)` circuit double covers. -/
+/-- A simple `2`-connected cubic graph on `n` vertices with a proper
+`3`-edge-colouring has at least `2 ^ (n / 2 - 1)` circuit double covers.
+Theorem 1.7 of Hušek–Šámal, arXiv:2607.24724. -/
 theorem P055 {V E : Type*} [Fintype V] [Fintype E]
     [DecidableEq V] [DecidableEq E] (G : Multigraph V E)
     (hSimple : G.IsSimple)

@@ -1,102 +1,9 @@
-import ProofBench.PROBLEMS.P105.P105
+import ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.SemiRandomProcess
 import Mathlib.Combinatorics.SimpleGraph.Hamiltonian
 import Mathlib.Probability.Distributions.Uniform
 import Mathlib.Data.Real.ENatENNReal
 import Mathlib.Topology.Order.Monotone
 import Mathlib.Topology.Instances.ENNReal.Lemmas
-
-/- ---------------------------------------------------- -/
-/- Paper: Building Hamiltonian Cycles in the Semi-Random Graph Process in Less Than 2n Rounds -/
-/- ---------------------------------------------------- -/
-
-/-!
-# P051: Building Hamiltonian cycles in the semi-random graph process in less than `2n` rounds
-
-This file formalizes the semi-random graph process of Section 1.1 and the main
-theorem of
-
-  A. Frieze, P. Gao, C. MacRury, P. Prałat and G. B. Sorkin, *Building
-  Hamiltonian cycles in the semi-random graph process in less than `2n`
-  rounds*, arXiv:2311.05533.
-
-## The paper's dependency graph
-
-* Section 1.1: the semi-random graph process.  In round `t` a vertex `u_t` is
-  offered uniformly at random, the online algorithm answers with a vertex
-  `v_t ∈ [n] \ {u_t}` and the edge `u_t v_t` is added.  A strategy is a family of
-  distributions `s_t(u_1, v_1, …, u_{t-1}, v_{t-1}, u_t)` on `[n] \ {u_t}` from
-  which `v_t` is drawn.  For an increasing property `P` and `0 < q < 1`,
-  `m_P(S, q, n)` is the least `t` with `P[G_t ∈ P] ≥ q` (`∞` if there is none),
-  `m_P(q, n) = inf_S m_P(S, q, n)` and, equation (1),
-  `C_P = lim_{q → 1⁻} limsup_{n → ∞} m_P(q, n) / n`.
-* **Theorem 1.1**, the main theorem: `C_HAM ≤ α ≤ 1.81701`, where `α` is
-  derived from the differential equations (6)-(9) and (17)-(21).
-* Theorem 1.2, the second main result: `C_HAM ≥ β ≈ 1.26575`, proved in
-  Section 3 (Claim 3.1, Lemma 3.2).
-* Section 2, the proof of Theorem 1.1.  The strategy runs `DegreeGreedy`
-  (Sections 2.5-2.6, analysed in Lemma 2.7, itself proved in Section 2.8 from
-  Lemma 2.8, Lemma 2.9 and Proposition 2.10 by the differential equation method
-  of Appendix A), then `FullyRandomized` (Section 2.3, Lemmas 2.1-2.3 and
-  Proposition 2.4), which together leave a path on `(1 - o(1)) n` vertices after
-  `(σ_N + α* + o(1)) n` rounds, and finally the clean-up algorithm of
-  Section 2.4 (Lemma 2.5, Remark 2), which completes a Hamiltonian cycle in
-  `o(n)` further rounds.  Theorem 2.6 is the `N = 0` case, `C_HAM ≤ 1.84887`.
-
-## What is formalized here
-
-The target of the problem is **Theorem 1.1**, stated at the end of this file as
-`P108` and proved by `sorry`, the single `sorry` of the
-file.  Everything else is proved from first principles with no `sorry` and no
-new axiom:
-
-* `History`, `Strategy`, `historyGraph`: histories `(u_1, v_1, …, u_t, v_t)`,
-  strategies as history-dependent distributions on `[n] \ {u_t}` (the response
-  type `{v // v ≠ u_t}` enforces the paper's rule that the algorithm may not
-  answer with the offered vertex), and the underlying simple graph of a history
-  (multiplicities discarded, which does not affect Hamiltonicity for `n ≥ 3`);
-* `step`, `playLawFrom`, `playLaw`: the law of the process, built round by
-  round from the uniform offer and the strategy's response; `playLawFrom_add`
-  is the Markov property of the process;
-* `successProbFrom`, `successProb`: `P[G_t ∈ P]`, monotone in `t` for an
-  increasing property (`successProb_mono`);
-* `hittingTime`, `minHittingTime`, `roundConstantAt`, `roundConstant`:
-  `m_P(S, q, n)`, `m_P(q, n)`, `limsup_n m_P(q, n) / n` and `C_P`, valued in
-  `ℕ∞` and `ℝ≥0∞` so that the paper's value `∞` is available.  `C_P` is defined
-  as the supremum over `0 < q < 1`, and `tendsto_roundConstantAt` proves that
-  this is the paper's left limit `lim_{q → 1⁻}` (the function is
-  non-decreasing in `q`, as the paper observes);
-* `roundConstant_le_of_forall_exists_tendsto`: the bridge from "for every
-  `ε > 0` some strategies satisfy `P` a.a.s. after `(α + ε) n` rounds" to
-  `C_P ≤ α`, the step by which the paper passes from Proposition 2.4 and
-  Lemma 2.5 to Theorems 1.1 and 2.6; `le_roundConstant_of_forall_eventually` is
-  the converse bridge used for lower bounds such as Theorem 1.2;
-* `HasHamiltonianCycle`, `hamiltonianProperty`: the property `HAM`, through
-  Mathlib's `SimpleGraph.IsHamiltonian`.
-
-## What is deliberately not asserted
-
-* The constant `α` of Theorem 1.1 is only characterised numerically in the
-  paper (the solutions of the differential equations are computed in Julia); the
-  theorem is stated with the printed bound `1.81701`.  The abstract and the
-  proof in Section 2.7 give the slightly sharper `1.81696`, which implies the
-  printed bound; the statement here follows the theorem as printed.
-* Theorem 1.2 is a second main result; it is not stated here since the file
-  carries a single `sorry`.  The bridge lemma it needs is proved.
-* Nothing about running time or explicitness of the strategies is encoded.
-
-## Conventions
-
-* The process is defined over an arbitrary nonempty finite vertex type; `C_P`
-  uses `Fin (n + 2)`, i.e. the vertex sets `[n]` with `n ≥ 2`.  The paper
-  allows `n ≥ 1`, but on a single vertex no response `v_t ≠ u_t` exists, so
-  there is no strategy at all and `m_P(q, 1) = ∞`; the `limsup` does not see
-  this term, and starting at `n = 2` keeps the strategy sequences of the
-  bridge lemmas well defined.
-* Probabilities `q` live in `ℝ≥0∞` and `m_P(S, q, n)` in `ℕ∞`, as in the paper
-  (`m_P(S, q, n) := ∞` if no round achieves probability `q`).
-* The last section keeps the earlier interface of this file on the realized
-  plays of `P048`; it is not used by the main theorem.
--/
 
 noncomputable section
 
@@ -106,8 +13,6 @@ open PerfectMatchingSemiRandom Filter Topology
 open scoped ENNReal NNReal
 
 variable {V : Type*}
-
-/-! ## The property `HAM` -/
 
 section Hamiltonian
 
@@ -124,6 +29,7 @@ theorem hasHamiltonianCycle_mono {G H : SimpleGraph V} (hGH : G ≤ H) :
   intro hG
   exact hG.mono hGH
 
+/-- `HAM` is an increasing property. -/
 theorem hasHamiltonianCycle_increasing :
     IncreasingProperty (HasHamiltonianCycle : SimpleGraph V → Prop) := by
   intro G H hGH
@@ -136,17 +42,13 @@ theorem connected_of_hasHamiltonianCycle (G : SimpleGraph V)
 
 end Hamiltonian
 
-/-! ## Histories, strategies and the generated graph (Section 1.1) -/
-
 /-- The history of a play: the pairs `(u_i, v_i)` of offered vertex and response, in
 chronological order. -/
 abbrev History (V : Type*) := List (V × V)
 
-/-- A strategy of the paper: for the history `(u_1, v_1, …, u_{t-1}, v_{t-1})` and the offered
-vertex `u_t` it prescribes the distribution `s_t(u_1, v_1, …, u_{t-1}, v_{t-1}, u_t)` on
-`[n] \ {u_t}` from which the response `v_t` is drawn.  The paper's rule `v_t ≠ u_t` is built
-into the type of the response.  Every strategy is online and fully adaptive: it may inspect
-the whole history, but not the future offers. -/
+/-- A strategy: for the history `(u_1, v_1, …, u_{t-1}, v_{t-1})` and the offered vertex `u_t`,
+the distribution `s_t` on `[n] \ {u_t}` from which the response `v_t` is drawn.  The rule
+`v_t ≠ u_t` is built into the type; the strategy sees the whole history but no future offers. -/
 abbrev Strategy (V : Type*) := History V → (offered : V) → PMF {v : V // v ≠ offered}
 
 /-- A strategy answering deterministically (an atomic distribution `s_t`). -/
@@ -164,12 +66,14 @@ def liftHistoryIndependent (strategy : HistoryIndependentStrategy V) : Determini
 def liftDeterministic (strategy : DeterministicStrategy V) : Strategy V :=
   fun history offered => PMF.pure (strategy history offered)
 
+/-- The lifted strategy ignores the history. -/
 @[simp]
 theorem liftHistoryIndependent_apply (strategy : HistoryIndependentStrategy V)
     (history : History V) (offered : V) :
     liftHistoryIndependent strategy history offered = strategy offered :=
   rfl
 
+/-- The lifted strategy answers with a point mass. -/
 @[simp]
 theorem liftDeterministic_apply (strategy : DeterministicStrategy V) (history : History V)
     (offered : V) :
@@ -182,15 +86,18 @@ def historyGraph : History V → SimpleGraph V
   | [] => ⊥
   | (offered, response) :: history => addEdge (historyGraph history) offered response
 
+/-- The empty history gives the empty graph. -/
 @[simp]
 theorem historyGraph_nil : historyGraph ([] : History V) = ⊥ :=
   rfl
 
+/-- The pair `(u, v)` contributes the edge `uv`. -/
 @[simp]
 theorem historyGraph_cons (u v : V) (history : History V) :
     historyGraph ((u, v) :: history) = addEdge (historyGraph history) u v :=
   rfl
 
+/-- The graph of a concatenation is the union of the two graphs. -/
 theorem historyGraph_append (h₁ h₂ : History V) :
     historyGraph (h₁ ++ h₂) = historyGraph h₁ ⊔ historyGraph h₂ := by
   induction h₁ with
@@ -206,12 +113,11 @@ theorem historyGraph_le_append (h₁ h₂ : History V) :
   rw [historyGraph_append]
   exact le_sup_left
 
+/-- Extending a history only adds edges. -/
 theorem historyGraph_mono_of_prefix {h₁ h₂ : History V} (hp : h₁ <+: h₂) :
     historyGraph h₁ ≤ historyGraph h₂ := by
   obtain ⟨t, rfl⟩ := hp
   exact historyGraph_le_append h₁ t
-
-/-! ### Deterministic strategies against a fixed realization of the offers -/
 
 /-- Run a deterministic strategy against a fixed sequence of offered vertices. -/
 def runDeterministicFrom (strategy : DeterministicStrategy V) :
@@ -240,13 +146,12 @@ theorem runDeterministicFrom_lift_eq (strategy : HistoryIndependentStrategy V)
       simp only [runDeterministicFrom, runHistoryIndependentFrom, liftHistoryIndependent]
       exact ih _
 
+/-- The two runs of `runDeterministicFrom_lift_eq` build the same graph. -/
 theorem historyGraph_runDeterministicFrom_lift (strategy : HistoryIndependentStrategy V)
     (history : History V) (offers : List V) :
     historyGraph (runDeterministicFrom (liftHistoryIndependent strategy) history offers) =
       historyGraph (runHistoryIndependentFrom strategy history offers) := by
   rw [runDeterministicFrom_lift_eq]
-
-/-! ## The law of the semi-random process -/
 
 section Process
 
@@ -276,11 +181,13 @@ def playLawFrom (S : Strategy V) (h₀ : History V) : ℕ → PMF (History V)
 def playLaw (S : Strategy V) (t : ℕ) : PMF (History V) :=
   playLawFrom S [] t
 
+/-- After `0` rounds the history is `h₀`. -/
 @[simp]
 theorem playLawFrom_zero (S : Strategy V) (h₀ : History V) :
     playLawFrom S h₀ 0 = PMF.pure h₀ :=
   rfl
 
+/-- Round `t + 1` is one `step` after round `t`. -/
 @[simp]
 theorem playLawFrom_succ (S : Strategy V) (h₀ : History V) (t : ℕ) :
     playLawFrom S h₀ (t + 1) = (playLawFrom S h₀ t).bind (step S) :=
@@ -298,6 +205,7 @@ theorem playLawFrom_add (S : Strategy V) (h₀ : History V) (t₁ t₂ : ℕ) :
         _ = ((playLawFrom S h₀ t₁).bind fun h => playLawFrom S h t).bind (step S) := by rw [ih]
         _ = (playLawFrom S h₀ t₁).bind fun h => playLawFrom S h (t + 1) := PMF.bind_bind _ _ _
 
+/-- After `t` rounds the history has grown by exactly `t` pairs. -/
 theorem length_of_mem_support_playLawFrom (S : Strategy V) (h₀ : History V) :
     ∀ (t : ℕ) (h : History V), h ∈ (playLawFrom S h₀ t).support → h.length = h₀.length + t
   | 0, h, hh => by
@@ -312,6 +220,7 @@ theorem length_of_mem_support_playLawFrom (S : Strategy V) (h₀ : History V) :
         length_of_mem_support_playLawFrom S h₀ t h' hh']
       omega
 
+/-- The starting history is a prefix of every history reached. -/
 theorem prefix_of_mem_support_playLawFrom (S : Strategy V) (h₀ : History V) :
     ∀ (t : ℕ) (h : History V), h ∈ (playLawFrom S h₀ t).support → h₀ <+: h
   | 0, h, hh => by
@@ -324,8 +233,6 @@ theorem prefix_of_mem_support_playLawFrom (S : Strategy V) (h₀ : History V) :
       obtain ⟨u, v, -, rfl⟩ := exists_of_mem_support_step hstep
       exact (prefix_of_mem_support_playLawFrom S h₀ t h' hh').trans (List.prefix_append h' _)
 
-/-! ## Success probabilities -/
-
 /-- `P[G_t ∈ P]` for the process started from the history `h₀`. -/
 def successProbFrom (S : Strategy V) (h₀ : History V) (P : SimpleGraph V → Prop) (t : ℕ) :
     ℝ≥0∞ :=
@@ -335,6 +242,7 @@ def successProbFrom (S : Strategy V) (h₀ : History V) (P : SimpleGraph V → P
 def successProb (S : Strategy V) (P : SimpleGraph V → Prop) (t : ℕ) : ℝ≥0∞ :=
   successProbFrom S [] P t
 
+/-- Success probabilities are at most `1`. -/
 theorem successProbFrom_le_one (S : Strategy V) (h₀ : History V) (P : SimpleGraph V → Prop)
     (t : ℕ) : successProbFrom S h₀ P t ≤ 1 := by
   unfold successProbFrom
@@ -343,6 +251,7 @@ theorem successProbFrom_le_one (S : Strategy V) (h₀ : History V) (P : SimpleGr
         (playLawFrom S h₀ t).toOuterMeasure_mono fun x _ => Set.mem_univ x
     _ = 1 := (PMF.toOuterMeasure_apply_eq_one_iff _ _).mpr (Set.subset_univ _)
 
+/-- Success probabilities are at most `1`. -/
 theorem successProb_le_one (S : Strategy V) (P : SimpleGraph V → Prop) (t : ℕ) :
     successProb S P t ≤ 1 :=
   successProbFrom_le_one S [] P t
@@ -365,25 +274,27 @@ theorem successProbFrom_le_succ (S : Strategy V) (h₀ : History V) {P : SimpleG
   · rw [Set.indicator_of_notMem hh]
     exact zero_le
 
+/-- For an increasing property, `P[G_t ∈ P]` is non-decreasing in `t`. -/
 theorem successProbFrom_mono (S : Strategy V) (h₀ : History V) {P : SimpleGraph V → Prop}
     (hP : IncreasingProperty P) : Monotone (successProbFrom S h₀ P) :=
   monotone_nat_of_le_succ (successProbFrom_le_succ S h₀ hP)
 
+/-- For an increasing property, `P[G_t ∈ P]` is non-decreasing in `t`. -/
 theorem successProb_mono (S : Strategy V) {P : SimpleGraph V → Prop}
     (hP : IncreasingProperty P) : Monotone (successProb S P) :=
   successProbFrom_mono S [] hP
-
-/-! ## The hitting times `m_P(S, q, n)` and `m_P(q, n)` -/
 
 /-- `m_P(S, q, n)`: the least round `t` with `P[G_t ∈ P] ≥ q`, and `∞` if there is none. -/
 def hittingTime (S : Strategy V) (P : SimpleGraph V → Prop) (q : ℝ≥0∞) : ℕ∞ :=
   ⨅ (t : ℕ) (_ : q ≤ successProb S P t), (t : ℕ∞)
 
+/-- `m_P(S, q, n) ≤ t` as soon as round `t` reaches probability `q`. -/
 theorem hittingTime_le {S : Strategy V} {P : SimpleGraph V → Prop} {q : ℝ≥0∞} {t : ℕ}
     (h : q ≤ successProb S P t) : hittingTime S P q ≤ t := by
   unfold hittingTime
   exact iInf₂_le t h
 
+/-- If every round reaching probability `q` is at least `m`, then `m ≤ m_P(S, q, n)`. -/
 theorem le_hittingTime {S : Strategy V} {P : SimpleGraph V → Prop} {q : ℝ≥0∞} {m : ℕ}
     (h : ∀ t : ℕ, q ≤ successProb S P t → m ≤ t) : (m : ℕ∞) ≤ hittingTime S P q := by
   unfold hittingTime
@@ -401,10 +312,12 @@ variable (V) in
 def minHittingTime (P : SimpleGraph V → Prop) (q : ℝ≥0∞) : ℕ∞ :=
   ⨅ S : Strategy V, hittingTime S P q
 
+/-- `m_P(q, n) ≤ m_P(S, q, n)` for every strategy `S`. -/
 theorem minHittingTime_le (P : SimpleGraph V → Prop) (q : ℝ≥0∞) (S : Strategy V) :
     minHittingTime V P q ≤ hittingTime S P q :=
   iInf_le _ S
 
+/-- A lower bound on every `m_P(S, q, n)` bounds `m_P(q, n)`. -/
 theorem le_minHittingTime {P : SimpleGraph V → Prop} {q : ℝ≥0∞} {m : ℕ∞}
     (h : ∀ S : Strategy V, m ≤ hittingTime S P q) : m ≤ minHittingTime V P q :=
   le_iInf h
@@ -414,8 +327,6 @@ theorem minHittingTime_mono (P : SimpleGraph V → Prop) : Monotone (minHittingT
   fun _ _ hq => iInf_mono fun S => hittingTime_mono S P hq
 
 end Process
-
-/-! ## The constant `C_P` of equation (1) -/
 
 /-- `limsup_{n → ∞} m_P(q, n) / n`, over the vertex sets `[n] = Fin n`, `n ≥ 2`
 (the index `n` of the `limsup` below is the paper's `n - 2`). -/
@@ -429,6 +340,7 @@ of `q` is non-decreasing, so the left limit is the supremum over `0 < q < 1`;
 def roundConstant (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) : ℝ≥0∞ :=
   ⨆ q ∈ Set.Ioo (0 : ℝ≥0∞) 1, roundConstantAt P q
 
+/-- `limsup_n m_P(q, n) / n` is non-decreasing in `q`. -/
 theorem roundConstantAt_mono (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) :
     Monotone (roundConstantAt P) := by
   intro q₁ q₂ hq
@@ -436,6 +348,7 @@ theorem roundConstantAt_mono (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) :
   refine limsup_le_limsup (Eventually.of_forall fun n => ?_)
   exact ENNReal.div_le_div_right (ENat.toENNReal_mono (minHittingTime_mono _ hq)) _
 
+/-- For `0 < q < 1`, `limsup_n m_P(q, n) / n` is at most `C_P`. -/
 theorem roundConstantAt_le_roundConstant (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) {q : ℝ≥0∞}
     (hq : q ∈ Set.Ioo (0 : ℝ≥0∞) 1) : roundConstantAt P q ≤ roundConstant P := by
   unfold roundConstant
@@ -458,12 +371,8 @@ theorem tendsto_roundConstantAt (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop) 
             ENNReal.half_lt_self one_ne_zero ENNReal.one_ne_top⟩
     · exact roundConstantAt_le_roundConstant P ⟨hq0, hq⟩
 
-/-! ## From almost-sure statements to bounds on `C_P` -/
-
-/-- **Upper bounds on `C_P` from a.a.s. statements.**  If for every `ε > 0` there are
-strategies `S_n` such that `P` holds after `⌈(α + ε) n⌉` rounds with probability tending to
-`1`, then `C_P ≤ α`.  This is how the paper passes from Proposition 2.4 and Lemma 2.5 to
-Theorems 1.1 and 2.6. -/
+/-- If for every `ε > 0` there are strategies `S_n` such that `P` holds after `⌈(α + ε) n⌉`
+rounds with probability tending to `1`, then `C_P ≤ α`. -/
 theorem roundConstant_le_of_forall_exists_tendsto (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop)
     {α : ℝ} (hα : 0 ≤ α)
     (h : ∀ ε : ℝ, 0 < ε → ∃ S : ∀ n : ℕ, Strategy (Fin (n + 2)),
@@ -514,9 +423,8 @@ theorem roundConstant_le_of_forall_exists_tendsto (P : ∀ n : ℕ, SimpleGraph 
         (ENNReal.div_le_iff (Nat.cast_ne_zero.mpr (by omega))
           (ENNReal.natCast_ne_top _)).mpr hT
 
-/-- **Lower bounds on `C_P` from a.a.s. statements.**  If for some `0 < q < 1` and every
-`ε > 0`, eventually no strategy achieves `P` with probability `q` within `(β - ε) n` rounds,
-then `C_P ≥ β`.  This is the shape of the proof of Theorem 1.2. -/
+/-- If for some `0 < q < 1` and every `ε > 0`, eventually no strategy achieves `P` with
+probability `q` within `(β - ε) n` rounds, then `C_P ≥ β`. -/
 theorem le_roundConstant_of_forall_eventually (P : ∀ n : ℕ, SimpleGraph (Fin n) → Prop)
     {β : ℝ} {q : ℝ≥0∞} (hq : q ∈ Set.Ioo (0 : ℝ≥0∞) 1)
     (h : ∀ ε : ℝ, 0 < ε → ∀ᶠ n : ℕ in atTop, ∀ S : Strategy (Fin (n + 2)), ∀ t : ℕ,
@@ -565,12 +473,11 @@ theorem le_roundConstant_of_forall_eventually_of_increasing
   filter_upwards [h ε hε] with n hn S t ht
   exact lt_of_le_of_lt (successProb_mono S (hP (n + 2)) (Nat.le_floor ht)) (hn S)
 
-/-! ## The property `HAM` on the vertex sets `[n]` -/
-
 /-- The property `HAM` on the vertex set `[n]`, through `HasHamiltonianCycle`. -/
 def hamiltonianProperty : ∀ n : ℕ, SimpleGraph (Fin n) → Prop :=
   fun _ G => HasHamiltonianCycle G
 
+/-- `HAM` on `[n]` is an increasing property. -/
 theorem hamiltonianProperty_increasing (n : ℕ) : IncreasingProperty (hamiltonianProperty n) :=
   hasHamiltonianCycle_increasing
 
@@ -581,19 +488,11 @@ theorem ofReal_ofScientific (m : ℕ) (s : Bool) (e : ℕ) :
   rw [← NNReal.coe_ofScientific, ENNReal.ofReal_coe_nnreal]
   rfl
 
-/-! ## The main theorem -/
-
-/-- **Theorem 1.1** (Frieze, Gao, MacRury, Prałat, Sorkin).  `C_HAM ≤ 1.81701`: for every
-`q < 1` and `ε > 0`, for all large `n` some strategy builds a Hamiltonian cycle on `[n]` with
-probability at least `q` within `(1.81701 + ε) n` rounds of the semi-random graph process.  The
-paper's constant `α ≤ 1.81701` is the numerical solution of the differential equations (6)-(9)
-and (17)-(21), obtained by running `DegreeGreedy` (with `N = 100` phases), `FullyRandomized`,
-and the clean-up algorithm of Section 2.4; the proof in Section 2.7 actually arrives at
-`(σ_N + α* + o(1)) n ≤ 1.81696 n` rounds. -/
+/-- Theorem 1.1 of Frieze–Gao–MacRury–Prałat–Sorkin, arXiv:2311.05533: `C_HAM ≤ 1.81701`, i.e.
+for every `q < 1` and `ε > 0`, for all large `n` some strategy builds a Hamiltonian cycle on
+`[n]` with probability at least `q` within `(1.81701 + ε) n` rounds. -/
 theorem P108 : roundConstant hamiltonianProperty ≤ 1.81701 := by
   sorry
-
-/-! ## Direct corollaries -/
 
 /-- `C_HAM` is finite. -/
 theorem roundConstant_hamiltonian_ne_top : roundConstant hamiltonianProperty ≠ ⊤ :=
@@ -607,8 +506,8 @@ theorem roundConstant_hamiltonian_lt_two : roundConstant hamiltonianProperty < 2
       ENNReal.ofReal_lt_ofReal_iff (by norm_num)]
     norm_num)
 
-/-- Theorem 1.1 improves the bound `C_HAM ≤ 1.84887` of Theorem 2.6 (the `N = 0` case,
-the bound of Frieze and Sorkin, reference [15] of the paper). -/
+/-- Theorem 1.1 improves the bound `C_HAM ≤ 1.84887` of Frieze and Sorkin (Theorem 2.6 of the
+paper). -/
 theorem roundConstant_hamiltonian_lt_fullyRandomized_bound :
     roundConstant hamiltonianProperty < 1.84887 :=
   lt_of_le_of_lt P108 (by
@@ -625,34 +524,26 @@ theorem roundConstant_hamiltonian_lt_previous_bound :
       ENNReal.ofReal_lt_ofReal_iff (by norm_num)]
     norm_num)
 
-/-! ## The earlier interface on realized plays
-
-The declarations below are the interface of the first version of this file, on the
-fixed-length realized plays and measures of `P048`.  They are kept for reference and are
-not used by the main theorem: the paper's quantities `m_P(S, q, n)` and `C_P` are defined
-through the strategy-driven laws above. -/
-
 section PlayInterface
 
 open MeasureTheory
 
 variable [Fintype V] [DecidableEq V]
 
-/-- A deterministic fully adaptive strategy on realized plays: the response can inspect the
-entire prior history and the currently offered vertex.  Unlike `DeterministicStrategy`, this
-type does not enforce the paper's rule `v_t ≠ u_t`. -/
+/-- Not used by the main theorem: a deterministic adaptive strategy on realised plays. -/
 abbrev AdaptiveStrategy (V : Type*) := List (V × V) → V → V
 
-/-- Probability that a length-`T` play has built a Hamiltonian graph. -/
+/-- Not used by the main theorem: the probability that a length-`T` play is Hamiltonian. -/
 def hamiltonicityProbability {T : ℕ} (law : Measure (Play V T)) : ℝ :=
   successProbability law HasHamiltonianCycle
 
-/-- A family of fixed-round laws succeeds asymptotically almost surely. -/
+/-- Not used by the main theorem: a family of fixed-round laws is Hamiltonian a.a.s. -/
 def BuildsHamiltonianWithHighProbability
     (rounds : ℕ → ℕ)
     (law : ∀ n, Measure (Play (Fin n) (rounds n))) : Prop :=
   Tendsto (fun n => hamiltonicityProbability (law n)) atTop (nhds 1)
 
+/-- Not used by the main theorem: the a.a.s. property depends only on the probabilities. -/
 theorem buildsHamiltonianWithHighProbability_congr
     {rounds : ℕ → ℕ}
     {law law' : ∀ n, Measure (Play (Fin n) (rounds n))}
@@ -665,8 +556,7 @@ theorem buildsHamiltonianWithHighProbability_congr
   rw [show (fun n => hamiltonicityProbability (law n)) =
       (fun n => hamiltonicityProbability (law' n)) from funext h]
 
-/-- Once a play's graph is Hamiltonian, every supergraph produced by later
-rounds remains Hamiltonian. -/
+/-- Not used by the main theorem: supergraphs of a Hamiltonian play graph are Hamiltonian. -/
 theorem remains_hamiltonian_in_supergraph
     {T : ℕ} (play : Play V T) {H : SimpleGraph V}
     (hplay : HasHamiltonianCycle play.graph) (hle : play.graph ≤ H) :

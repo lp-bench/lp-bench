@@ -10,12 +10,12 @@ variable {f : ℕ → ℝ} {c : ℝ}
 noncomputable def seqRoot (f : ℕ → ℝ) (t : ℕ) : ℝ := (f t) ^ ((t : ℝ)⁻¹)
 
 /-- The eventual **ε-bracket** predicate: for every `0 < ε < c`, the sequence is
-eventually trapped in `[(c-ε)^t, (c+ε)^t]`.  This is the "third conjecture" form. -/
+eventually trapped in `[(c-ε)^t, (c+ε)^t]`. -/
 def RootBracket (f : ℕ → ℝ) (c : ℝ) : Prop :=
   ∀ ε : ℝ, 0 < ε → ε < c → ∀ᶠ t in atTop, (c - ε) ^ t ≤ f t ∧ f t ≤ (c + ε) ^ t
 
-/-! ## Ramsey specializations (reusing `ramseyRoot`, `RamseyLimitConjecture`) -/
-
+/-- The diagonal Ramsey number `R(t)`: the least `n` such that every simple graph on `n` vertices
+contains a clique of size `t` or an independent set of size `t`. -/
 noncomputable def ramseyNumber (t : ℕ) : ℕ :=
   sInf {n : ℕ | ∀ (G : SimpleGraph (Fin n)),
     (∃ s : Finset (Fin n), G.IsNClique t s) ∨
@@ -25,10 +25,7 @@ noncomputable def ramseyNumber (t : ℕ) : ℕ :=
 famous open problem of Erdős. -/
 noncomputable def ramseyRoot (t : ℕ) : ℝ := (ramseyNumber t : ℝ) ^ ((t : ℝ)⁻¹)
 
-/-- **The Erdős limit conjecture**, in root-convergence form:
-some `c ∈ [√2, 4]` is the limit of `R(t)^{1/t}`.  Shared conjecture used by the
-P116 upper bound; equivalent to the ε-bracket form via
-`ramsey_rootBracket_iff_tendsto`.  Existence of the limit is the open Erdős
-problem (and any such `c` is known to be `< 4`). -/
+/-- **The Erdős limit conjecture**, in root-convergence form: `R(t)^{1/t}` converges to some
+`c ∈ [√2, 4]`. Existence of the limit is open. -/
 def RamseyLimitConjecture : Prop :=
   ∃ c, √2 ≤ c ∧ c ≤ 4 ∧ Tendsto ramseyRoot atTop (𝓝 c)

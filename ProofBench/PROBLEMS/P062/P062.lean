@@ -4,12 +4,9 @@ open Multigraph
 
 universe u v
 
-/-- **Tutte's 5-flow conjecture** (1954): every bridgeless multigraph has a
-nowhere-zero 5-flow, stated here in the equivalent group-valued form with
-values in `ZMod 5` (by Tutte's theorem, only the order of the group
-matters).  Jaeger proved the 8-flow theorem and Seymour the 6-flow theorem;
-5 would be best possible, as the Petersen graph has no nowhere-zero
-4-flow. -/
+/-- **Tutte's 5-flow conjecture** (Tutte 1954): every bridgeless multigraph
+has a nowhere-zero flow with values in `ZMod 5`; by Tutte's theorem this is
+equivalent to the integer form with values of absolute value at most `4`. -/
 theorem P062 :
     ∀ (V : Type u) (E : Type v) [Fintype E] [DecidableEq V]
       (M : Multigraph V E),

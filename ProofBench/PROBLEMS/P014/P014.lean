@@ -9,15 +9,16 @@ noncomputable section
 
 variable {V : Type*} [Fintype V] (G : SimpleGraph V) {n : ℕ}
 
+/-- A proper edge-colouring of `G` with colours in `α`: a proper colouring of its line graph. -/
 def EdgeColoring (α : Type*) := (lineGraph G).Coloring α
 
+/-- The walk `p` is rainbow under `c`: distinct edges of `p` get distinct colours. -/
 def IsRainbow {α : Type*} [DecidableEq α] (c : EdgeColoring G α)
     {u v : V} (p : G.Walk u v) : Prop :=
     Set.InjOn c.toFun (fun e => e.1 ∈ p.edgeSet)
 
--- The hypercube `H n` of sequences of length `n` is defined in
--- `ProofBench.Mathlib_Problems.Combinatorics.SimpleGraph.Hypercube`.
-
+/-- The coordinate in which the two vertices of a hypercube edge differ. On pairs that are not
+edges it takes the junk value `0`, which is harmless since only its values on edges are used. -/
 def phi' (hn : 0 < n) : Sym2 (Q n) -> Fin n := by
   let fn : (Q n) → (Q n) → Fin n := by
     intro p q
@@ -27,6 +28,8 @@ def phi' (hn : 0 < n) : Sym2 (Q n) -> Fin n := by
         exact ⟨0, hn ⟩
   exact Sym2.lift ⟨ fn, by grind ⟩
 
+/-- An edge of `H n` through `p` is `s(p, y)` for some `y ≠ p` differing from `p` in exactly one
+coordinate. -/
 lemma hypercube_edge_destruct {n : ℕ} {e : Sym2 (Fin n → Bool)}
     (he : e ∈ (H n).edgeSet) {p : Fin n → Bool} (hp : p ∈ e) :
     ∃ y, y ≠ p ∧ e = s(p, y) ∧ ∃! i, p i ≠ y i := by
@@ -41,6 +44,8 @@ lemma hypercube_edge_destruct {n : ℕ} {e : Sym2 (Fin n → Bool)}
     exact he
   exact ⟨y, h_xy, h_exy, h_adj⟩
 
+/-- The coordinate edge-colouring of `H n`: each edge gets the coordinate in which its endpoints
+differ. -/
 def HEdgeColoring (hn : 0 < n) :
   EdgeColoring (H n) (Fin n) where
   toFun := fun p => phi' hn p.1
@@ -68,6 +73,9 @@ def HEdgeColoring (hn : 0 < n) :
       · grind
     grind
 
+/-- No cycle of the hypercube `H n` is rainbow under the coordinate edge-colouring; the hypercube
+case of rainbow cycles in proper edge-colourings (Alon–Bucić–Sauermann–Zakharov–Zamir,
+arXiv:2309.04460). -/
 theorem P014 {hn : 0 < n} {u : Q n}
   {p : (H n).Walk u u} {hp : IsCycle p} :
   ¬ IsRainbow (H n) (HEdgeColoring hn) p := sorry
