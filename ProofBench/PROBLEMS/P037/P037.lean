@@ -16,7 +16,7 @@ def closedNeighborSet {V : Type u} (G : SimpleGraph V) (v : V) : Set V :=
 
 /-- A graph covering map: a surjective homomorphism mapping the closed neighbourhood of each
 vertex `x` bijectively onto the closed neighbourhood of `p x`. -/
-def IsCoveringMap {V W : Type u} (H : SimpleGraph W) (G : SimpleGraph V)
+def IsGraphCoveringMap {V W : Type u} (H : SimpleGraph W) (G : SimpleGraph V)
     (p : H →g G) : Prop :=
   Function.Surjective p ∧
     ∀ x : W, Set.BijOn p (closedNeighborSet H x) (closedNeighborSet G (p x))
@@ -99,7 +99,7 @@ vertex at distance `> r` (closed walks of length `≤ r` lift to closed walks), 
 of the cover `r`-homotopic to the trivial walk. -/
 def IsRLocalCovering {V W : Type u} (H : SimpleGraph W) (G : SimpleGraph V) (p : H →g G)
     (r : ℕ) : Prop :=
-  IsCoveringMap H G p ∧ H.Connected ∧
+  IsGraphCoveringMap H G p ∧ H.Connected ∧
     (∀ x y : W, HasWalkLengthAtMost H x y r → p x = p y → x = y) ∧
     ∀ (x : W) (w : H.Walk x x), AreRHomotopic H r w Walk.nil
 
