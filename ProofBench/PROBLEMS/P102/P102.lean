@@ -95,7 +95,7 @@ theorem mem_solvableRightHandSideSpace_iff
 /-- Over a finite field, the number of solvable right-hand sides is the field
 order raised to the matrix rank. -/
 theorem card_solvableRightHandSideSpace
-    {F m n : Type*} [Field F] [Fintype F] [Fintype m] [Fintype n]
+    {F m n : Type*} [Field F] [Finite m] [Fintype n]
     (A : Matrix m n F) :
     Nat.card (SolvableRightHandSideSpace A) = Nat.card F ^ A.rank := by
   rw [Module.natCard_eq_pow_finrank
@@ -105,10 +105,11 @@ theorem card_solvableRightHandSideSpace
 /-- If `A` does not have full row rank, at most a fraction `1 / |F|` of the right-hand sides
 are solvable. -/
 theorem card_solvableRightHandSideSpace_mul_fieldOrder_le
-    {F m n : Type*} [Field F] [Fintype F] [Fintype m] [Fintype n]
+    {F m n : Type*} [Field F] [Finite F] [Finite m] [Fintype n]
     (A : Matrix m n F) (hA : Not (HasFullRowRank A)) :
     Nat.card (SolvableRightHandSideSpace A) * Nat.card F <=
       Nat.card (m -> F) := by
+  have := Fintype.ofFinite m
   have hrank_ne : Not (A.rank = Fintype.card m) := by
     intro hrank
     exact hA ((hasFullRowRank_iff_rank_eq_card_rows A).2 hrank)
@@ -274,7 +275,7 @@ theorem tendsto_one_of_finiteField_solvability_gap
 
 /-- The side condition of Theorem 1.1: the order `q = |F|` of the finite field is coprime
 to the gcd `𝔡` of the support of `d`. -/
-def FieldOrderCoprime {F : Type*} [Fintype F]
+def FieldOrderCoprime (F : Type*) [Fintype F]
     (P : DegreeParameters) : Prop :=
   Nat.Coprime (Fintype.card F) P.variableSupportGCD
 
@@ -378,7 +379,7 @@ theorem P102 (F : Type*) [Field F] [Fintype F]
     (hmoment_d : Summable fun r => P.variableDegree.mass r * (r : Real) ^ (2 + η))
     (hmoment_k : Summable fun r => P.checkDegree.mass r * (r : Real) ^ (2 + η))
     (kgcd : Nat) (hkgcd : P.checkDegree.IsSupportGCD kgcd)
-    (hcoprime : FieldOrderCoprime (F := F) P) (hphi : P.StrictPhiCondition) :
+    (hcoprime : FieldOrderCoprime F P) (hphi : P.StrictPhiCondition) :
     AsymptoticallyAlmostSurely fun t =>
       fullRowRankProbability (randomMatrixLaw F P χ (kgcd * t)).toMeasure := by
   sorry
@@ -391,7 +392,7 @@ theorem full_row_rank_theorem_of_const (F : Type*) [Field F] [Fintype F]
     (hmoment_d : Summable fun r => P.variableDegree.mass r * (r : Real) ^ (2 + η))
     (hmoment_k : Summable fun r => P.checkDegree.mass r * (r : Real) ^ (2 + η))
     (kgcd : Nat) (hkgcd : P.checkDegree.IsSupportGCD kgcd)
-    (hcoprime : FieldOrderCoprime (F := F) P) (hphi : P.StrictPhiCondition) :
+    (hcoprime : FieldOrderCoprime F P) (hphi : P.StrictPhiCondition) :
     AsymptoticallyAlmostSurely fun t =>
       fullRowRankProbability (randomMatrixLaw F P (PMF.pure 1) (kgcd * t)).toMeasure := by
   refine P102 F P (PMF.pure 1) ?_ η hη hmoment_d hmoment_k kgcd hkgcd
