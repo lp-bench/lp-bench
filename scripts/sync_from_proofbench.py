@@ -12,7 +12,8 @@ A copied file may import only Mathlib, Matroid, `Archive.Sensitivity`, copied
 `ProofBench.Mathlib_Problems.*` modules and other statement files.  A library
 file that imports anything else is skipped and reported; a statement file that
 does is an error.  `ProofBench/DATABASE/Database.json` keeps statement fields
-only, and `SOURCE_COMMIT` records the exported commit.  `--build` compiles
+only (and a problem's `permitted_axioms` where it restricts them, read by the
+grader), and `SOURCE_COMMIT` records the exported commit.  `--build` compiles
 every copied module with `lake build`.
 """
 
@@ -34,6 +35,7 @@ EXTERNAL = re.compile(r"(Mathlib|Matroid)(\..+)?$|Archive\.Sensitivity$")
 IMPORT = re.compile(r"^(?:public\s+)?import\s+(\S+)", re.M)
 DB_FIELDS = ["id", "name", "difficulty", "msc", "informal_statement",
              "informal_statement_summary", "formal_statement"]
+OPTIONAL_DB_FIELDS = ["permitted_axioms"]  # copied only where present
 MANAGED = ["ProofBench", "SOURCE_COMMIT", *PROJECT_FILES]
 
 
@@ -96,7 +98,9 @@ def main() -> None:
         db = json.loads((src / "ProofBench/DATABASE/Database.json").read_text(encoding="utf-8"))
         out = HERE / "ProofBench/DATABASE/Database.json"
         out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps([{k: e.get(k, "") for k in DB_FIELDS} for e in db], indent=1, ensure_ascii=False) + "\n",
+        rows = [{**{k: e.get(k, "") for k in DB_FIELDS}, **{k: e[k] for k in OPTIONAL_DB_FIELDS if k in e}}
+                for e in db]
+        out.write_text(json.dumps(rows, indent=1, ensure_ascii=False) + "\n",
                        encoding="utf-8")
     (HERE / "SOURCE_COMMIT").write_text(commit + "\n")
 
