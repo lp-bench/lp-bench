@@ -1506,5 +1506,22 @@
   "formal_statement": [
    "theorem P116 : RamseyBracket"
   ]
+ },
+ {
+  "id": "117",
+  "name": "Vizing's Theorem, Constructively (no Classical.choice)",
+  "difficulty": "Research (constructive track: no Classical.choice)",
+  "msc": "05C15 Coloring of graphs and hypergraphs",
+  "informal_statement": [
+   "\\section*{Challenge 117: Vizing's Theorem, Constructively}\n\\refstepcounter{section}\n\n\\begin{definition}[Proper edge-colouring]\nLet $G$ be a finite simple graph. A \\emph{proper edge-colouring} of $G$ with $k$ colours is a function $c : E\\ev{G} \\rightarrow [k]$ such that any two edges sharing a common endpoint receive different colours.\n\\end{definition}\n\n\\begin{definition}[Maximum degree]\nThe \\emph{maximum degree} $\\Delta\\ev{G}$ of $G$ is the largest number of edges incident with any single vertex of $G$.\n\\end{definition}\n\n\\begin{theorem}[Vizing's Theorem \\mbox{\\cite[Theorem~5.3.2, p.~103]{diestel}}, constructively \\cite{misragries1992}]\\label{vizing-constructive}\nEvery finite simple graph $G$ has a proper edge-colouring with $\\Delta\\ev{G} + 1$ colours.\n\\end{theorem}\n\nThis challenge belongs to the \\emph{constructive track}: the proof must not use the axiom of choice. In Lean, it may depend on the axioms \\texttt{propext} and \\texttt{Quot.sound} but not on \\texttt{Classical.choice}, so the law of excluded middle is available only for decidable propositions. The graph is given on the vertices $0, \\dots, n-1$ with decidable adjacency, so a proof amounts to an algorithm. Misra and Gries gave such an algorithm: it colours the edges one at a time, rotating a fan of edges at a vertex and swapping two colours along an alternating path where necessary.\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\\begin{thebibliography}{2}\n\\bibitem{diestel} Reinhard Diestel. \\emph{Graph Theory}. Graduate Texts in Mathematics \\textbf{173}, Springer, 5th edition. (2017). \\texttt{doi:10.1007/978-3-662-53622-3}.\n\\bibitem{misragries1992} Jayadev Misra and David Gries. A constructive proof of Vizing's theorem. \\emph{Information Processing Letters} \\textbf{41}(3) (1992), 131--133.\n\\end{thebibliography}"
+  ],
+  "informal_statement_summary": "Let G be a finite simple graph. A proper edge-colouring of G assigns a colour to each edge so that any two edges sharing a common endpoint receive different colours, and Δ(G), the maximum degree of G, is the largest number of edges incident with any single vertex. Vizing's theorem states that G has a proper edge-colouring with Δ(G) + 1 colours. This challenge asks for a constructive proof, without the axiom of choice: in Lean, the proof may depend on propext and Quot.sound but not on Classical.choice. The graph is given on the vertices 0, …, n − 1 with decidable adjacency, so a proof amounts to an algorithm, such as the one of Misra and Gries (1992), which colours the edges one at a time, rotating a fan of edges at a vertex and swapping two colours along an alternating path where necessary.",
+  "formal_statement": [
+   "theorem P117 {n : Nat} (G : FinGraph n) : G.EdgeColourable (G.maxDegree + 1)"
+  ],
+  "permitted_axioms": [
+   "propext",
+   "Quot.sound"
+  ]
  }
 ]
