@@ -18,8 +18,28 @@ spanned by `chambers`: the union of the closed simplices on the chambers. -/
 def realization (chambers : Finset (Finset ℕ)) : Set (ℕ → ℝ) :=
   {x | (∀ v, 0 ≤ x v) ∧ ∃ t ∈ chambers, (∀ v, x v ≠ 0 → v ∈ t) ∧ ∑ v ∈ t, x v = 1}
 
-/-- A triangulation of `S^d`: a finite family of `d`-simplices, the chambers, spanning a
-simplicial complex homeomorphic to the `d`-sphere. The `i`-cells are the faces of the
+/-- The link of the face `f` in the complex spanned by `chambers`: the chambers containing
+`f`, with `f` removed. -/
+def link (chambers : Finset (Finset ℕ)) (f : Finset ℕ) : Finset (Finset ℕ) :=
+  (chambers.filter fun t => f ⊆ t).image fun t => t \ f
+
+/-- Combinatorial `d`-spheres, by recursion on `d`: a combinatorial `0`-sphere consists of
+exactly two vertices; a combinatorial `(d+1)`-sphere is a family of `(d+1)`-simplices whose
+realization is homeomorphic to `S^(d+1)` and all of whose vertex links are combinatorial
+`d`-spheres. Hence every face link of a combinatorial sphere is again homeomorphic to a
+sphere, which is what makes the dual cell complex a CW complex (the piecewise-linear
+setting of the source); a triangulation that is merely homeomorphic to the sphere need
+not have this property (double suspensions of homology spheres). -/
+def IsCombinatorialSphere : ℕ → Finset (Finset ℕ) → Prop
+  | 0, K => ∃ a b : ℕ, a ≠ b ∧ K = {{a}, {b}}
+  | d + 1, K => (∀ t ∈ K, t.card = d + 2) ∧
+      Nonempty (realization K ≃ₜ Metric.sphere (0 : EuclideanSpace ℝ (Fin (d + 2))) 1) ∧
+      ∀ v ∈ K.biUnion id, IsCombinatorialSphere d (link K {v})
+
+/-- A (piecewise-linear) triangulation of `S^d`: a finite family of `d`-simplices, the
+chambers, spanning a simplicial complex homeomorphic to the `d`-sphere in which every vertex
+link is a combinatorial `(d-1)`-sphere, so that every face link is a sphere.
+The `i`-cells are the faces of the
 chambers with `i + 1` vertices, and the vertices are natural numbers, so that fresh ones
 are always available for subdivisions. -/
 structure Triangulation (d : ℕ) where
@@ -27,6 +47,9 @@ structure Triangulation (d : ℕ) where
   card_chamber : ∀ t ∈ chambers, t.card = d + 1
   isSphere : Nonempty
     (realization chambers ≃ₜ Metric.sphere (0 : EuclideanSpace ℝ (Fin (d + 1))) 1)
+  /-- The piecewise-linear hypothesis of the source: every vertex link is a combinatorial
+  `(d-1)`-sphere (for `d ≥ 1`; for `d = 0` the link is empty and the condition is void). -/
+  link_sphere : ∀ v ∈ chambers.biUnion id, IsCombinatorialSphere (d - 1) (link chambers {v})
 
 namespace Triangulation
 
@@ -74,8 +97,10 @@ end TriangulationColouring
 
 open TriangulationColouring TriangulationColouring.Triangulation
 
-/-- Theorem 1 of Planken, arXiv:2409.11762: for `d ≥ 2` and a triangulation `C` of the
-`d`-sphere, the 1-skeleton of `C` is `(d+2)`-colourable iff `C` is `Subdividable`; for
+/-- Theorem 1 of Planken, arXiv:2409.11762: for `d ≥ 2` and a piecewise-linear
+triangulation `C` of the `d`-sphere (every vertex link a combinatorial sphere, as the
+dual cell complex argument of the source requires), the 1-skeleton of `C` is `(d+2)`-colourable
+iff `C` is `Subdividable`; for
 `d = 3` both are also equivalent to `MaximalSubdivisionBichromatic`. -/
 theorem P099 (d : ℕ) (_hd : 2 ≤ d) (C : Triangulation d) :
     (C.skeleton.Colorable (d + 2) ↔ C.Subdividable) ∧
