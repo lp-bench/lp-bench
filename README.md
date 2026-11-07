@@ -56,8 +56,8 @@ answer we expect.
 You need Lean 4 through [elan](https://lean-lang.org/install/). Then:
 
 ```bash
-git clone https://github.com/lp-bench/proofbench
-cd proofbench
+git clone https://github.com/lp-bench/lp-bench
+cd lp-bench
 lake exe cache get                          # download compiled Mathlib (a few minutes)
 lake build ProofBench.PROBLEMS.P112.P112    # check that a problem file builds
 ```
@@ -135,7 +135,7 @@ automatically.
 ## Reporting a problem
 
 If a statement does not say what it should, or a definition looks wrong,
-please [open an issue](https://github.com/lp-bench/proofbench/issues).
+please [open an issue](https://github.com/lp-bench/lp-bench/issues).
 
 ## For maintainers
 
