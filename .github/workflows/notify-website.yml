@@ -1,5 +1,5 @@
 name: notify website
-# After every push to main, signals proof-bench/proof-bench.github.io to regenerate its
+# After every push to main, signals lp-bench/lp-bench.github.io to regenerate its
 # problem list from this repository (its workflow site.yml). The signal is sent with a
 # short-lived key of the proof-bench GitHub App whose ID and private key are stored in the
 # secrets PROOFBENCH_APP_ID and PROOFBENCH_APP_KEY; without them, the job does nothing.
@@ -20,8 +20,8 @@ jobs:
         with:
           app-id: ${{ secrets.PROOFBENCH_APP_ID }}
           private-key: ${{ secrets.PROOFBENCH_APP_KEY }}
-          owner: proof-bench
-          repositories: proof-bench.github.io
+          owner: lp-bench
+          repositories: lp-bench.github.io
 
       - name: Signal the website repository
         if: env.APP_ID != ''
@@ -32,5 +32,5 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer $TOKEN" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/proof-bench/proof-bench.github.io/dispatches \
+            https://api.github.com/repos/lp-bench/lp-bench.github.io/dispatches \
             -d '{"event_type": "proofbench-updated", "client_payload": {"sha": "${{ github.sha }}"}}'

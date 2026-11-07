@@ -1,9 +1,9 @@
 # ProofBench: research-level combinatorics in Lean 4
 
-[Website](https://proof-bench.github.io) ·
+[Website](https://lp-bench.github.io) ·
 **Problems** (this repository) ·
-[Evaluation harness](https://github.com/proof-bench/proofbench-eval-apptainer) ·
-[Apptainer sandbox](https://github.com/proof-bench/inspect-apptainer)
+[Evaluation harness](https://github.com/lp-bench/QEDRank) ·
+[Apptainer sandbox](https://github.com/lp-bench/QEDRank/tree/main/inspectAI-apptainer)
 
 ProofBench is a benchmark of **116 research-level problems**, most of them in
 combinatorics and graph theory, stated in Lean 4 with Mathlib. Each problem is a
@@ -22,7 +22,7 @@ By Mathematics Subject Classification, 82 problems are in graph theory (05C), 8
 in designs, configurations and matroids (05B) and 6 in extremal combinatorics
 (05D); the other 20 range over other parts of combinatorics, number theory,
 discrete and convex geometry, group theory, linear algebra, topology,
-probability, order theory, set theory and theoretical computer science. Browse them on the [website](https://proof-bench.github.io/problems.html)
+probability, order theory, set theory and theoretical computer science. Browse them on the [website](https://lp-bench.github.io/problems.html)
 or in [`Database.json`](ProofBench/DATABASE/Database.json).
 
 ## An example
@@ -56,7 +56,7 @@ answer we expect.
 You need Lean 4 through [elan](https://lean-lang.org/install/). Then:
 
 ```bash
-git clone https://github.com/proof-bench/proofbench
+git clone https://github.com/lp-bench/proofbench
 cd proofbench
 lake exe cache get                          # download compiled Mathlib (a few minutes)
 lake build ProofBench.PROBLEMS.P112.P112    # check that a problem file builds
@@ -83,7 +83,7 @@ replaced.
   Lean FRO's adversarial proof checker, which replays it through the Lean
   kernel.
 
-The [evaluation harness](https://github.com/proof-bench/proofbench-eval-apptainer)
+The [evaluation harness](https://github.com/lp-bench/QEDRank)
 implements exactly these checks. A claimed solution of an open problem is also
 checked by hand.
 
@@ -120,7 +120,7 @@ them measure reproduction rather than discovery.
 
 ## Evaluating AI systems
 
-The [evaluation harness](https://github.com/proof-bench/proofbench-eval-apptainer)
+The [evaluation harness](https://github.com/lp-bench/QEDRank)
 runs AI agents on these problems under identical conditions (the same agent
 loop, tools, budgets and sandbox for every model) and grades their proofs with
 Lean and Comparator. It works on a PC with Docker and on HPC clusters with
@@ -135,7 +135,7 @@ automatically.
 ## Reporting a problem
 
 If a statement does not say what it should, or a definition looks wrong,
-please [open an issue](https://github.com/proof-bench/proofbench/issues).
+please [open an issue](https://github.com/lp-bench/proofbench/issues).
 
 ## For maintainers
 
