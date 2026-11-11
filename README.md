@@ -5,7 +5,7 @@
 [Evaluation harness](https://github.com/lp-bench/QEDRank) ·
 [Apptainer sandbox](https://github.com/lp-bench/QEDRank/tree/main/inspectAI-apptainer)
 
-LPBench (formerly ProofBench) is a benchmark of **117 research-level problems**, most of them in
+LPBench (formerly ProofBench) is a benchmark of **118 research-level problems**, most of them in
 combinatorics and graph theory, stated in Lean 4 with Mathlib. Each problem is a
 single theorem whose proof is `sorry`; a solution replaces it with a proof that
 Lean accepts. The problems are taken from the research literature and from open
@@ -15,10 +15,10 @@ and Universität Hamburg.
 | Category    | Problems | What it means                                          |
 |-------------|---------:|--------------------------------------------------------|
 | Open        | 32       | open conjectures: prove the statement or its negation  |
-| Literature  | 64       | results with a published proof                         |
+| Literature  | 65       | results with a published proof                         |
 | Calibration | 21       | elementary or textbook results, to check an evaluation |
 
-By Mathematics Subject Classification, 83 problems are in graph theory (05C), 8
+By Mathematics Subject Classification, 84 problems are in graph theory (05C), 8
 in designs, configurations and matroids (05B) and 6 in extremal combinatorics
 (05D); the other 20 range over other parts of combinatorics, number theory,
 discrete and convex geometry, group theory, linear algebra, topology,
@@ -126,6 +126,13 @@ corrected on 6 November 2026 after three evaluated models objected that its
 statement was false: the formal statement now carries the piecewise-linear
 hypothesis that the source takes for granted. The problem keeps its number;
 the earlier statement is in the history of this repository.
+
+## Problems added since the paper
+
+The paper describes and evaluates the 117 problems P001 to P117 (commit `5950904`). P118, the
+corner lemma for the cube from Bourneuf, Carmesin, Kurkofka and Planken
+([arXiv:2611.01772](https://arxiv.org/abs/2611.01772), Lemma 4.1), was added on 11 November
+2026.
 
 ## Evaluating AI systems
 
