@@ -1,6 +1,7 @@
 # LPBench: research-level combinatorics in Lean 4
 
 [Website](https://lp-bench.github.io) ·
+[Paper](https://zenodo.org/records/24195212) ·
 **Problems** (this repository) ·
 [Evaluation harness](https://github.com/lp-bench/QEDRank) ·
 [Apptainer sandbox](https://github.com/lp-bench/QEDRank/tree/main/inspectAI-apptainer)
@@ -129,7 +130,7 @@ the earlier statement is in the history of this repository.
 
 ## Problems added since the paper
 
-The paper describes and evaluates the 117 problems P001 to P117 (commit `5950904`). P118, the
+The [paper](https://zenodo.org/records/24195212) describes and evaluates the 117 problems P001 to P117 (commit `5950904`). P118, the
 corner lemma for the cube from Bourneuf, Carmesin, Kurkofka and Planken
 ([arXiv:2611.01772](https://arxiv.org/abs/2611.01772), Lemma 4.1), was added on 11 November
 2026.
@@ -152,6 +153,23 @@ automatically.
 
 If a statement does not say what it should, or a definition looks wrong,
 please [open an issue](https://github.com/lp-bench/lp-bench/issues).
+
+## Citing LPBench
+
+If you use LPBench, please cite the paper
+([Zenodo](https://zenodo.org/records/24195212), doi:[10.5281/zenodo.24195212](https://doi.org/10.5281/zenodo.24195212)):
+
+```bibtex
+@misc{bajpai2026lpbench,
+  title     = {{LPBench}: A Lean Benchmark for Research-Level Mathematical Theorem Proving},
+  author    = {Bajpai, Vaibhav and Bowler, Nathan and Carmesin, Johannes and
+               Groppe, Jinghua and Groppe, Sven and Okur, Utku},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.24195212},
+  url       = {https://zenodo.org/records/24195212}
+}
+```
 
 ## For maintainers
 
